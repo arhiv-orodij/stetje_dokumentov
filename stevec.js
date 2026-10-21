@@ -22,7 +22,6 @@
         "Sklep: o založitvi stroškov": ["I"],
         "Sklep: ustavitev izvršbe": ["I"],
         "Sklep: ustavitev postopka": ["I"],
-        "Sklep: upravni": ["I"],
         "Zapisnik: izvršba po I.osebi (legalizacija)": ["I", "L"]
     };
 
