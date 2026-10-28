@@ -94,7 +94,7 @@
 
     processWindow(window);
 
-    const tocke = (sumIP / 20) + (sumA / 6);
+    const tocke = (sumIP / 16) + (sumA / 4);
     let faktor = "0%";
     if (tocke >= 3) {
         faktor = "4%";
