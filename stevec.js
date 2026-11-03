@@ -291,23 +291,39 @@
             return `<span style="background:#fee2e2; color:#991b1b; padding:3px 10px; border-radius:12px; font-weight:700; font-size:14px; margin-left:8px;">${razlika}</span>`;
         };
 
-        let htmlDelovnaMeseci = `<div style="display:grid; grid-template-columns: 85px repeat(12, 1fr); gap:4px; text-align:center; font-size:13px; margin-top:16px;">`;
+        // --- TABELA: DELOVNA USPEŠNOST (Z VSOTO) ---
+        let htmlDelovnaMeseci = `<div style="display:grid; grid-template-columns: 85px repeat(12, 1fr) 50px; gap:4px; text-align:center; font-size:13px; margin-top:16px;">`;
         htmlDelovnaMeseci += `<div style="font-weight:700; color:#64748b; text-align:left;">MESEC</div>`;
         for(let i=1; i<=12; i++) htmlDelovnaMeseci += `<div style="font-weight:800; color:#64748b;">${i}</div>`;
+        htmlDelovnaMeseci += `<div style="font-weight:900; color:#0f172a; background:#e2e8f0; border-radius:4px; display:flex; align-items:center; justify-content:center;">∑</div>`;
         
+        let sumA_meseci = 0, sumIP_meseci = 0, sumTocke_meseci = 0;
+
         htmlDelovnaMeseci += `<div style="font-weight:600; color:#a16207; text-align:left;">Akti (A)</div>`;
-        for(let i=1; i<=12; i++) htmlDelovnaMeseci += `<div style="background:#fef9c3; border-radius:4px; padding:3px 0;">${stats.delovna.months[i].a || '-'}</div>`;
+        for(let i=1; i<=12; i++) {
+            let val = stats.delovna.months[i].a || 0;
+            sumA_meseci += val;
+            htmlDelovnaMeseci += `<div style="background:#fef9c3; border-radius:4px; padding:3px 0;">${val || '-'}</div>`;
+        }
+        htmlDelovnaMeseci += `<div style="background:#fde047; border-radius:4px; padding:3px 0; font-weight:800; color:#854d0e;">${sumA_meseci || '-'}</div>`;
         
         htmlDelovnaMeseci += `<div style="font-weight:600; color:#166534; text-align:left;">Pregledi (IP)</div>`;
-        for(let i=1; i<=12; i++) htmlDelovnaMeseci += `<div style="background:#dcfce7; border-radius:4px; padding:3px 0;">${stats.delovna.months[i].ip || '-'}</div>`;
+        for(let i=1; i<=12; i++) {
+            let val = stats.delovna.months[i].ip || 0;
+            sumIP_meseci += val;
+            htmlDelovnaMeseci += `<div style="background:#dcfce7; border-radius:4px; padding:3px 0;">${val || '-'}</div>`;
+        }
+        htmlDelovnaMeseci += `<div style="background:#86efac; border-radius:4px; padding:3px 0; font-weight:800; color:#166534;">${sumIP_meseci || '-'}</div>`;
         
         let mesecTocke = [];
         htmlDelovnaMeseci += `<div style="font-weight:600; color:#0f172a; text-align:left;">Točke</div>`;
         for(let i=1; i<=12; i++) {
             let mt = (stats.delovna.months[i].ip / 16) + (stats.delovna.months[i].a / 4);
             mesecTocke[i] = mt;
+            sumTocke_meseci += mt;
             htmlDelovnaMeseci += `<div style="background:#f1f5f9; border-radius:4px; padding:3px 0;">${mt>0 ? mt.toFixed(1) : '-'}</div>`;
         }
+        htmlDelovnaMeseci += `<div style="background:#cbd5e1; border-radius:4px; padding:3px 0; font-weight:800; color:#0f172a;">${sumTocke_meseci>0 ? sumTocke_meseci.toFixed(1) : '-'}</div>`;
         
         htmlDelovnaMeseci += `<div style="font-weight:700; color:#0284c7; text-align:left;">Faktor</div>`;
         for(let i=1; i<=12; i++) {
@@ -322,18 +338,36 @@
             }
             htmlDelovnaMeseci += `<div style="background:#e0f2fe; border-radius:4px; padding:3px 0; font-weight:600; color:#0369a1;">${mf}</div>`;
         }
+        htmlDelovnaMeseci += `<div style="background:#bae6fd; border-radius:4px; padding:3px 0; font-weight:800; color:#0369a1;">-</div>`;
         htmlDelovnaMeseci += `</div>`;
 
-        let htmlNormaMeseci = `<div style="display:grid; grid-template-columns: 85px repeat(12, 1fr); gap:4px; text-align:center; font-size:13px; margin-bottom:20px;">`;
+        // --- TABELA: LETNA NORMA (Z VSOTO) ---
+        let htmlNormaMeseci = `<div style="display:grid; grid-template-columns: 85px repeat(12, 1fr) 50px; gap:4px; text-align:center; font-size:13px; margin-bottom:20px;">`;
         htmlNormaMeseci += `<div style="font-weight:700; color:#64748b; text-align:left;">MESEC</div>`;
         for(let i=1; i<=12; i++) htmlNormaMeseci += `<div style="font-weight:800; color:#64748b;">${i}</div>`;
+        htmlNormaMeseci += `<div style="font-weight:900; color:#0f172a; background:#e2e8f0; border-radius:4px; display:flex; align-items:center; justify-content:center;">∑</div>`;
         
+        let sumNormaA_meseci = 0, sumNormaIP_meseci = 0;
+
         htmlNormaMeseci += `<div style="font-weight:600; color:#b45309; text-align:left;">Akti (A)</div>`;
-        for(let i=1; i<=12; i++) htmlNormaMeseci += `<div style="background:#ffedd5; border-radius:4px; padding:3px 0;">${stats.norma.months[i].a || '-'}</div>`;
+        for(let i=1; i<=12; i++) {
+            let val = stats.norma.months[i].a || 0;
+            sumNormaA_meseci += val;
+            htmlNormaMeseci += `<div style="background:#ffedd5; border-radius:4px; padding:3px 0;">${val || '-'}</div>`;
+        }
+        htmlNormaMeseci += `<div style="background:#fdba74; border-radius:4px; padding:3px 0; font-weight:800; color:#9a3412;">${sumNormaA_meseci || '-'}</div>`;
         
         htmlNormaMeseci += `<div style="font-weight:600; color:#047857; text-align:left;">Pregledi (IP)</div>`;
-        for(let i=1; i<=12; i++) htmlNormaMeseci += `<div style="background:#d1fae5; border-radius:4px; padding:3px 0;">${stats.norma.months[i].ip || '-'}</div>`;
+        for(let i=1; i<=12; i++) {
+            let val = stats.norma.months[i].ip || 0;
+            sumNormaIP_meseci += val;
+            htmlNormaMeseci += `<div style="background:#d1fae5; border-radius:4px; padding:3px 0;">${val || '-'}</div>`;
+        }
+        htmlNormaMeseci += `<div style="background:#6ee7b7; border-radius:4px; padding:3px 0; font-weight:800; color:#047857;">${sumNormaIP_meseci || '-'}</div>`;
         htmlNormaMeseci += `</div>`;
+
+        // Stil za vprašaje
+        const qStyle = `position:absolute; top:8px; right:8px; width:22px; height:22px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:13px; font-weight:bold; cursor:pointer; opacity:0.75; transition:all 0.2s;`;
 
         container.innerHTML = `
             <!-- DELOVNA USPEŠNOST SEKCIJA -->
@@ -344,15 +378,18 @@
                 </div>
                 
                 <div style="display:flex; gap:16px; flex-wrap:wrap;">
-                    <div style="flex:1; min-width:120px; background:#fffbea; border:1px solid #fef08a; padding:14px; border-radius:12px;">
+                    <div style="flex:1; min-width:120px; background:#fffbea; border:1px solid #fef08a; padding:14px; border-radius:12px; position:relative;">
+                        <div id="q-delovna-a" style="${qStyle} background:#fef08a; color:#854d0e;" title="Prikaži kateri akti se štejejo">?</div>
                         <div style="font-size:14px; color:#a16207; font-weight:700; margin-bottom:6px;">AKTI (A)</div>
                         <div style="font-size:28px; font-weight:800; color:#854d0e;">${sumA_top} <span style="font-size:15px; font-weight:600; color:#ca8a04;">(${odstotekDelovnoA_top}%)</span></div>
                     </div>
-                    <div style="flex:1; min-width:120px; background:#f0fdf4; border:1px solid #bbf7d0; padding:14px; border-radius:12px;">
+                    <div style="flex:1; min-width:120px; background:#f0fdf4; border:1px solid #bbf7d0; padding:14px; border-radius:12px; position:relative;">
+                        <div id="q-delovna-ip" style="${qStyle} background:#bbf7d0; color:#166534;" title="Prikaži kateri pregledi se štejejo">?</div>
                         <div style="font-size:14px; color:#166534; font-weight:700; margin-bottom:6px;">PREGLEDI (IP)</div>
                         <div style="font-size:28px; font-weight:800; color:#15803d;">${sumIP_top} <span style="font-size:15px; font-weight:600; color:#22c55e;">(${odstotekDelovnoIP_top}%)</span></div>
                     </div>
-                    <div style="flex:1; min-width:150px; background:#f8fafc; border:1px solid #e2e8f0; padding:14px; border-radius:12px; text-align:center;">
+                    <div style="flex:1; min-width:150px; background:#f8fafc; border:1px solid #e2e8f0; padding:14px; border-radius:12px; text-align:center; position:relative;">
+                        <div id="q-delovna-tocke" style="${qStyle} background:#e2e8f0; color:#475569;" title="Prikaži formulo">?</div>
                         <div style="font-size:14px; color:#475569; font-weight:700; margin-bottom:6px;">TOČKE / FAKTOR</div>
                         <div style="font-size:28px; font-weight:800; color:#0f172a;">${tocke_top.toFixed(2)} <span style="color:#0ea5e9;">/ ${faktor_top}</span></div>
                     </div>
@@ -368,11 +405,13 @@
                 </div>
                 
                 <div style="display:flex; gap:16px; flex-wrap:wrap; margin-bottom:20px;">
-                    <div style="flex:1; min-width:120px; background:#fffbea; border:1px solid #fef08a; padding:14px; border-radius:12px;">
+                    <div style="flex:1; min-width:120px; background:#fffbea; border:1px solid #fef08a; padding:14px; border-radius:12px; position:relative;">
+                        <div id="q-norma-a" style="${qStyle} background:#fef08a; color:#854d0e;" title="Prikaži kateri akti se štejejo">?</div>
                         <div style="font-size:14px; color:#a16207; font-weight:700; margin-bottom:6px;">AKTI (A)</div>
                         <div style="font-size:28px; font-weight:800; color:#854d0e;">${stats.norma.totalA} <span style="color:#ca8a04;">(${prikazDosezenoNormaA})</span></div>
                     </div>
-                    <div style="flex:1; min-width:120px; background:#f0fdf4; border:1px solid #bbf7d0; padding:14px; border-radius:12px;">
+                    <div style="flex:1; min-width:120px; background:#f0fdf4; border:1px solid #bbf7d0; padding:14px; border-radius:12px; position:relative;">
+                        <div id="q-norma-ip" style="${qStyle} background:#bbf7d0; color:#166534;" title="Prikaži kateri pregledi se štejejo">?</div>
                         <div style="font-size:14px; color:#166534; font-weight:700; margin-bottom:6px;">PREGLEDI (IP)</div>
                         <div style="font-size:28px; font-weight:800; color:#15803d;">${stats.norma.totalIP} <span style="color:#22c55e;">(${prikazDosezenoNormaIP})</span></div>
                     </div>
@@ -409,6 +448,30 @@
                 </div>
             </div>
         `;
+
+        // Povezava gumbov "?" z izpisi podatkov
+        const setupBtn = (id, title, list) => {
+            let btn = targetDocument.getElementById(id);
+            if(btn) {
+                btn.onmouseover = function(){ this.style.opacity = '1'; };
+                btn.onmouseout = function(){ this.style.opacity = '0.75'; };
+                btn.onclick = () => {
+                    alert(title + ":\n\n• " + list.join("\n• "));
+                };
+            }
+        };
+
+        setupBtn('q-delovna-a', 'DELOVNA USPEŠNOST - Seznam aktov (A)', docsA);
+        setupBtn('q-delovna-ip', 'DELOVNA USPEŠNOST - Seznam pregledov (IP)', docsIP);
+        setupBtn('q-norma-a', 'LETNA NORMA - Seznam aktov (A)', normaDocsA);
+        setupBtn('q-norma-ip', 'LETNA NORMA - Seznam pregledov (IP)', normaDocsIP);
+        
+        let tockeBtn = targetDocument.getElementById('q-delovna-tocke');
+        if(tockeBtn) {
+            tockeBtn.onmouseover = function(){ this.style.opacity = '1'; };
+            tockeBtn.onmouseout = function(){ this.style.opacity = '0.75'; };
+            tockeBtn.onclick = () => alert("FORMULA ZA TOČKE IN FAKTOR:\n\nTočke = (Pregledi / 16) + (Akti / 4)\n\nMeje za faktor (polna norma):\n4% ➔ 3.0 točk\n3% ➔ 2.5 točk\n2% ➔ 2.0 točk\n1% ➔ 1.5 točk\n\n(Pri obkljukani polovični normi so meje točk prepolovljene.)");
+        }
     }
 
     // --- 6. USTVARJANJE OKNA (MODAL) ---
