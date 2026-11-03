@@ -450,14 +450,39 @@
         `;
 
         // Povezava gumbov "?" z izpisi podatkov
+// --- LASTNO POJAVNO OKENCE ZA IZPIS (namesto sistemskega alert-a) ---
+        const showInfo = (title, list) => {
+            let stari = targetDocument.getElementById('moj-info-popup');
+            if (stari) stari.remove();
+            
+            let popup = targetDocument.createElement('div');
+            popup.id = 'moj-info-popup';
+            popup.style.cssText = 'position:absolute; top:50%; left:50%; transform:translate(-50%, -50%); background:#ffffff; border:1px solid #cbd5e1; border-radius:12px; padding:20px; box-shadow:0 20px 25px -5px rgba(0,0,0,0.2); z-index:999999; max-height:85%; overflow-y:auto; width:90%; max-width:450px;';
+            
+            // Če je list array (seznam), ga pretvorimo v html vrstice, sicer obdržimo besedilo (za formulo)
+            let vsebina = Array.isArray(list) ? "• " + list.join("<br>• ") : list.replace(/\n/g, '<br>');
+            
+            popup.innerHTML = `
+                <h4 style="margin:0 0 12px 0; color:#0f172a; font-size:15px; border-bottom:1px solid #e2e8f0; padding-bottom:8px;">${title}</h4>
+                <div style="font-size:13px; color:#334155; line-height:1.5;">${vsebina}</div>
+                <div style="text-align:right; margin-top:16px; border-top:1px solid #e2e8f0; padding-top:12px;">
+                    <button id="zapri-info-btn" style="background:#0f172a; color:#fff; border:none; padding:6px 16px; border-radius:6px; font-weight:600; cursor:pointer;">Zapri</button>
+                </div>
+            `;
+            
+            container.style.position = 'relative';
+            container.appendChild(popup);
+            
+            targetDocument.getElementById('zapri-info-btn').onclick = () => popup.remove();
+        };
+
+        // Povezava gumbov "?" z novim oknom
         const setupBtn = (id, title, list) => {
             let btn = targetDocument.getElementById(id);
             if(btn) {
                 btn.onmouseover = function(){ this.style.opacity = '1'; };
                 btn.onmouseout = function(){ this.style.opacity = '0.75'; };
-                btn.onclick = () => {
-                    alert(title + ":\n\n• " + list.join("\n• "));
-                };
+                btn.onclick = () => showInfo(title, list);
             }
         };
 
@@ -470,9 +495,7 @@
         if(tockeBtn) {
             tockeBtn.onmouseover = function(){ this.style.opacity = '1'; };
             tockeBtn.onmouseout = function(){ this.style.opacity = '0.75'; };
-            tockeBtn.onclick = () => alert("FORMULA ZA TOČKE IN FAKTOR:\n\nTočke = (Pregledi / 16) + (Akti / 4)\n\nMeje za faktor (polna norma):\n4% ➔ 3.0 točk\n3% ➔ 2.5 točk\n2% ➔ 2.0 točk\n1% ➔ 1.5 točk\n\n(Pri obkljukani polovični normi so meje točk prepolovljene.)");
-        }
-    }
+tockeBtn.onclick = () => showInfo("FORMULA ZA TOČKE IN FAKTOR", "Točke = (Pregledi / 16) + (Akti / 4)\n\nMeje za faktor (polna norma):\n3.0 točk ➔ 4%\n2.5 točk ➔ 3%\n2.0 točk ➔ 2%\n1.5 točk ➔ 1%\n\n(Pri obkljukani polovični normi so meje točk prepolovljene.)");        }
 
     // --- 6. USTVARJANJE OKNA (MODAL) ---
     const stariModal = targetDocument.getElementById("moj-top-stat-modal");
