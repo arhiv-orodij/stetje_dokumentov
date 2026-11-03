@@ -339,8 +339,8 @@
             <!-- DELOVNA USPEŠNOST SEKCIJA -->
             <div style="margin-bottom: 32px;">
                 <div style="display:flex; justify-content:space-between; align-items:flex-end; border-bottom:2px solid #cbd5e1; padding-bottom:8px; margin-bottom:16px;">
-                    <h3 style="margin:0; font-size:18px; text-transform:uppercase; color:#334155; font-weight:800; letter-spacing:0.5px;">Delovna uspešnost</h3>
-                    <div style="font-size:13px; color:#475569; font-weight:500;">Obdobje kartic: <b style="color:#0f172a;">30. prejšnji — 29. tekoči (${trenutniMesec}.) mesec</b></div>
+                    <h3 style="margin:0; font-size:18px; text-transform:uppercase; color:#334155; font-weight:800; letter-spacing:0.5px;">Delovna uspešnost za ${trenutniMesec}. mesec</h3>
+                    <div style="font-size:13px; color:#475569; font-weight:500;">Obdobje: <b style="color:#0f172a;">30. prejšnji — 29. tekoči mesec</b></div>
                 </div>
                 
                 <div style="display:flex; gap:16px; flex-wrap:wrap;">
