@@ -202,20 +202,23 @@
         return false;
     }
 
-    // --- OBDELAVA IN ŠTETJE ---
+// --- OBDELAVA IN ŠTETJE ---
     validRows.forEach(r => {
         let isCurr = isCurrentPeriod(r.day, r.month, r.year);
+
+        // NOVO: Dokumenti od 30. dalje se štejejo v naslednji obračunski mesec
+        let obracunskiM = r.day >= 30 ? (r.month === 12 ? 1 : r.month + 1) : r.month;
 
         // Štetje: DELOVNA USPEŠNOST
         if (checkDocMatch(r.docName, docsA)) {
             stats.delovna.totalA++;
-            stats.delovna.months[r.month].a++;
+            stats.delovna.months[obracunskiM].a++; // vpis v obračunski mesec
             if (isCurr) stats.delovna.currentA++;
             
             r.tr.style.backgroundColor = '#fff3cd'; 
         } else if (checkDocMatch(r.docName, docsIP)) {
             stats.delovna.totalIP++;
-            stats.delovna.months[r.month].ip++;
+            stats.delovna.months[obracunskiM].ip++; // vpis v obračunski mesec
             if (isCurr) stats.delovna.currentIP++;
             
             r.tr.style.backgroundColor = '#d4edda'; 
@@ -224,16 +227,15 @@
         // Štetje: LETNA NORMA
         if (checkDocMatch(r.docName, normaDocsA)) {
             stats.norma.totalA++;
-            stats.norma.months[r.month].a++;
+            stats.norma.months[obracunskiM].a++;
         } else if (checkDocMatch(r.docName, normaDocsIP)) {
             stats.norma.totalIP++;
-            stats.norma.months[r.month].ip++;
+            stats.norma.months[obracunskiM].ip++;
         }
     });
-
     const zdaj = new Date(); // Ohranjeno za odstotek poteka tekočega leta v UI
 
-    // --- 5. LOGIKA ZA UI IN IZRAČUNE ---
+// --- 5. LOGIKA ZA UI IN IZRAČUNE ---
     function renderUI(isHalfNorm) {
         let container = targetDocument.getElementById('moj-top-stat-vsebina');
         if (!container) return;
@@ -338,7 +340,7 @@
             <div style="margin-bottom: 32px;">
                 <div style="display:flex; justify-content:space-between; align-items:flex-end; border-bottom:2px solid #cbd5e1; padding-bottom:8px; margin-bottom:16px;">
                     <h3 style="margin:0; font-size:18px; text-transform:uppercase; color:#334155; font-weight:800; letter-spacing:0.5px;">Delovna uspešnost</h3>
-                    <div style="font-size:13px; color:#475569; font-weight:500;">Obdobje kartic: <b style="color:#0f172a;">30. prejšnji — 29. tekoči mesec</b></div>
+                    <div style="font-size:13px; color:#475569; font-weight:500;">Obdobje kartic: <b style="color:#0f172a;">30. prejšnji — 29. tekoči (${trenutniMesec}.) mesec</b></div>
                 </div>
                 
                 <div style="display:flex; gap:16px; flex-wrap:wrap;">
@@ -368,11 +370,11 @@
                 <div style="display:flex; gap:16px; flex-wrap:wrap; margin-bottom:20px;">
                     <div style="flex:1; min-width:120px; background:#fffbea; border:1px solid #fef08a; padding:14px; border-radius:12px;">
                         <div style="font-size:14px; color:#a16207; font-weight:700; margin-bottom:6px;">AKTI (A)</div>
-                        <div style="font-size:28px; font-weight:800; color:#854d0e;">${stats.norma.totalA} <span style="font-size:15px; font-weight:600; color:#ca8a04;">(${prikazDosezenoNormaA})</span></div>
+                        <div style="font-size:28px; font-weight:800; color:#854d0e;">${stats.norma.totalA} <span style="color:#ca8a04;">(${prikazDosezenoNormaA})</span></div>
                     </div>
                     <div style="flex:1; min-width:120px; background:#f0fdf4; border:1px solid #bbf7d0; padding:14px; border-radius:12px;">
                         <div style="font-size:14px; color:#166534; font-weight:700; margin-bottom:6px;">PREGLEDI (IP)</div>
-                        <div style="font-size:28px; font-weight:800; color:#15803d;">${stats.norma.totalIP} <span style="font-size:15px; font-weight:600; color:#22c55e;">(${prikazDosezenoNormaIP})</span></div>
+                        <div style="font-size:28px; font-weight:800; color:#15803d;">${stats.norma.totalIP} <span style="color:#22c55e;">(${prikazDosezenoNormaIP})</span></div>
                     </div>
                 </div>
 
