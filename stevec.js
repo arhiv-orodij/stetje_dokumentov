@@ -191,7 +191,7 @@
 
     processWindow(window);
 
-    // --- 5. LOGIKA ZA UI IN IZRAČUNE ---
+// --- 5. LOGIKA ZA UI IN IZRAČUNE ---
     function renderUI(isHalfNorm) {
         let container = targetDocument.getElementById('moj-top-stat-vsebina');
         if (!container) return;
@@ -201,11 +201,17 @@
         const sumIP = stats.delovna.totalIP;
         const tocke = (sumIP / 16) + (sumA / 4);
         
+        // PRILAGODITEV: Prepolovitev zahtevanih točk za delovno uspešnost
+        const meja4 = isHalfNorm ? 1.5 : 3;
+        const meja3 = isHalfNorm ? 1.25 : 2.5;
+        const meja2 = isHalfNorm ? 1 : 2;
+        const meja1 = isHalfNorm ? 0.75 : 1.5;
+
         let faktor = "0%";
-        if (tocke >= 3) faktor = "4%";
-        else if (tocke >= 2.5) faktor = "3%";
-        else if (tocke >= 2) faktor = "2%";
-        else if (tocke >= 1.5) faktor = "1%";
+        if (tocke >= meja4) faktor = "4%";
+        else if (tocke >= meja3) faktor = "3%";
+        else if (tocke >= meja2) faktor = "2%";
+        else if (tocke >= meja1) faktor = "1%";
 
         let skupnoDelovno = sumA + sumIP;
         let odstotekDelovnoA = skupnoDelovno > 0 ? ((sumA / skupnoDelovno) * 100).toFixed(1) : "0";
