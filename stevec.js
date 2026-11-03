@@ -167,7 +167,7 @@
     processWindow(window);
 
     if (validRows.length === 0) {
-        alert("Ni ustreznih podatkov.\n\nProsimo, odprite stran:\nPoročila -> Tekoče delo -> Realizacija dela\nin izberite pravi datum (1. januar - 31. december).");
+        alert("Ni ustreznih podatkov.\n\nProsimo, odprite stran:\nPoročila -> Tekoče delo -> Realizacija dela\nin izberite pravi datum (npr. 1. januar - 31. december).");
         return; // Prekine izvajanje kode
     }
 
