@@ -323,8 +323,7 @@
             sumTocke_meseci += mt;
             htmlDelovnaMeseci += `<div style="background:#f1f5f9; border-radius:4px; padding:3px 0;">${mt>0 ? mt.toFixed(1) : '-'}</div>`;
         }
-        htmlDelovnaMeseci += `<div style="background:#cbd5e1; border-radius:4px; padding:3px 0; font-weight:800; color:#0f172a;">${sumTocke_meseci>0 ? sumTocke_meseci.toFixed(1) : '-'}</div>`;
-        
+        htmlDelovnaMeseci += `<div style="background:#cbd5e1; border-radius:4px; padding:3px 0; font-weight:800; color:#0f172a;">-</div>`;
         htmlDelovnaMeseci += `<div style="font-weight:700; color:#0284c7; text-align:left;">Faktor</div>`;
         for(let i=1; i<=12; i++) {
             let mt = mesecTocke[i];
