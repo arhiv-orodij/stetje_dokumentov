@@ -91,9 +91,9 @@
         "Zapisnik: prekrškovni" 
     ];
 
-    // --- 3. SPREMENLJIVKE ZA ZAJEM PODATKOV ---
+// --- 3. SPREMENLJIVKE ZA ZAJEM PODATKOV ---
     let stats = {
-        delovna: { totalA: 0, totalIP: 0, months: {} },
+        delovna: { totalA: 0, totalIP: 0, currentA: 0, currentIP: 0, months: {} },
         norma: { totalA: 0, totalIP: 0, months: {} }
     };
     
@@ -104,14 +104,30 @@
     }
 
     let targetDocument = document; 
+    
+// Določitev trenutnega obračunskega obdobja (od 30. prejšnjega do 29. tekočega)
+    const zdaj = new Date();
+    const trenutniMesec = zdaj.getMonth() + 1;
+    const trenutnoLeto = zdaj.getFullYear();
 
-    function clean(str) {
-        return (str || "").replace(/\u00a0/g, " ").replace(/\s+/g, " ").trim();
+    // Pametna funkcija, ki vrne točno število dni v določenem mesecu in letu
+    function getDaysInMonth(month, year) {
+        return new Date(year, month, 0).getDate();
     }
 
-    function checkDocMatch(docString, list) {
-        let searchDoc = docString.toLowerCase();
-        return list.some(item => searchDoc.startsWith(item.toLowerCase()));
+    function isCurrentPeriod(d, m, y) {
+        let prejsnjiMesec = trenutniMesec === 1 ? 12 : trenutniMesec - 1;
+        let letoPrejsnjega = trenutniMesec === 1 ? trenutnoLeto - 1 : trenutnoLeto;
+
+        // Začetni dan je 30., razen če mesec nima toliko dni (npr. februar) - v tem primeru vzamemo zadnji dan meseca
+        let zacetniDan = Math.min(30, getDaysInMonth(prejsnjiMesec, letoPrejsnjega));
+
+        // Obdobje prejšnjega meseca (od 30. oz. zadnjega obstoječega dneva dalje)
+        if (y === letoPrejsnjega && m === prejsnjiMesec && d >= zacetniDan) return true;
+        // Obdobje tekočega meseca (do vključno 29.)
+        if (y === trenutnoLeto && m === trenutniMesec && d <= 29) return true; 
+        
+        return false;
     }
 
     // --- 4. ANALIZA TABEL IN ZAJEM ---
@@ -129,11 +145,13 @@
             const smer = clean(cells[0].textContent).toUpperCase();
             if (!['I', 'L'].includes(smer)) return;
             
-            // Izlušči datum in mesec
+            // Izlušči datum, mesec in leto
             let dateText = clean(cells[1].textContent);
             let match = dateText.match(dateRegex);
+            let day = match ? parseInt(match[1], 10) : null;
             let month = match ? parseInt(match[2], 10) : null;
-            if(!month || month < 1 || month > 12) month = 1; // Fallback, če datuma ni
+            let year = match ? parseInt(match[3], 10) : null;
+            if(!month || month < 1 || month > 12) month = 1; 
 
             // Izlušči vrsto dokumenta
             let docName = "";
@@ -152,12 +170,16 @@
             if (checkDocMatch(docName, docsA)) {
                 stats.delovna.totalA++;
                 stats.delovna.months[month].a++;
-                tr.style.backgroundColor = '#fff3cd'; // Obarvamo A (Delovno)
+                if (day && month && year && isCurrentPeriod(day, month, year)) stats.delovna.currentA++;
+                
+                tr.style.backgroundColor = '#fff3cd'; // Obarvamo A 
                 counted = true;
             } else if (checkDocMatch(docName, docsIP)) {
                 stats.delovna.totalIP++;
                 stats.delovna.months[month].ip++;
-                tr.style.backgroundColor = '#d4edda'; // Obarvamo IP (Delovno)
+                if (day && month && year && isCurrentPeriod(day, month, year)) stats.delovna.currentIP++;
+                
+                tr.style.backgroundColor = '#d4edda'; // Obarvamo IP 
                 counted = true;
             }
 
@@ -191,45 +213,50 @@
 
     processWindow(window);
 
-// --- 5. LOGIKA ZA UI IN IZRAČUNE ---
+    // --- 5. LOGIKA ZA UI IN IZRAČUNE ---
     function renderUI(isHalfNorm) {
         let container = targetDocument.getElementById('moj-top-stat-vsebina');
         if (!container) return;
 
-        // Izračuni za Delovno Uspešnost
-        const sumA = stats.delovna.totalA;
-        const sumIP = stats.delovna.totalIP;
-        const tocke = (sumIP / 16) + (sumA / 4);
-        
+        // MEJE ZA FAKTOR
         const meja4 = isHalfNorm ? 1.5 : 3;
         const meja3 = isHalfNorm ? 1.25 : 2.5;
         const meja2 = isHalfNorm ? 1 : 2;
         const meja1 = isHalfNorm ? 0.75 : 1.5;
 
-        let faktor = "0%";
-        if (tocke >= meja4) faktor = "4%";
-        else if (tocke >= meja3) faktor = "3%";
-        else if (tocke >= meja2) faktor = "2%";
-        else if (tocke >= meja1) faktor = "1%";
+        // Izračuni za Delovno Uspešnost (KARTICE - SAMO TEKOČI MESEC)
+        const sumA_top = stats.delovna.currentA;
+        const sumIP_top = stats.delovna.currentIP;
+        const tocke_top = (sumIP_top / 16) + (sumA_top / 4);
+        
+        let faktor_top = "0%";
+        if (tocke_top >= meja4) faktor_top = "4%";
+        else if (tocke_top >= meja3) faktor_top = "3%";
+        else if (tocke_top >= meja2) faktor_top = "2%";
+        else if (tocke_top >= meja1) faktor_top = "1%";
 
-        let skupnoDelovno = sumA + sumIP;
-        let odstotekDelovnoA = skupnoDelovno > 0 ? ((sumA / skupnoDelovno) * 100).toFixed(1) : "0";
-        let odstotekDelovnoIP = skupnoDelovno > 0 ? ((sumIP / skupnoDelovno) * 100).toFixed(1) : "0";
+        let skupnoDelovno_top = sumA_top + sumIP_top;
+        let odstotekDelovnoA_top = skupnoDelovno_top > 0 ? ((sumA_top / skupnoDelovno_top) * 100).toFixed(1) : "0";
+        let odstotekDelovnoIP_top = skupnoDelovno_top > 0 ? ((sumIP_top / skupnoDelovno_top) * 100).toFixed(1) : "0";
 
         // Izračuni za Letno Normo
         const ciljNormaA = isHalfNorm ? 27 : 54;
         const ciljNormaIP = isHalfNorm ? 59.5 : 119;
+        const ciljSkupaj = ciljNormaA + ciljNormaIP;
         
-        // Odstotek realizacije posamezne letne norme
         let dosezenoNormaA_num = ((stats.norma.totalA / ciljNormaA) * 100);
         let dosezenoNormaIP_num = ((stats.norma.totalIP / ciljNormaIP) * 100);
         let prikazDosezenoNormaA = dosezenoNormaA_num.toFixed(1) + "%";
         let prikazDosezenoNormaIP = dosezenoNormaIP_num.toFixed(1) + "%";
-
-        const zdaj = new Date();
+        
+        let skupnoNorma = stats.norma.totalA + stats.norma.totalIP;
+        let odstotekNormaA = skupnoNorma > 0 ? ((stats.norma.totalA / skupnoNorma) * 100).toFixed(1) : "0";
+        let odstotekNormaIP = skupnoNorma > 0 ? ((stats.norma.totalIP / skupnoNorma) * 100).toFixed(1) : "0";
+        let skupnaRealizacijaLeta = ((skupnoNorma / ciljSkupaj) * 100).toFixed(1);
+        
+        const msVDnevu = 1000 * 60 * 60 * 24;
         const zacetekLeta = new Date(zdaj.getFullYear(), 0, 1);
         const konecLeta = new Date(zdaj.getFullYear(), 11, 31);
-        const msVDnevu = 1000 * 60 * 60 * 24;
         
         const pretekliDni = Math.floor((zdaj - zacetekLeta) / msVDnevu) + 1; 
         const vsiDniLeta = Math.floor((konecLeta - zacetekLeta) / msVDnevu) + 1;
@@ -249,7 +276,7 @@
             return `<span style="background:#fee2e2; color:#991b1b; padding:3px 10px; border-radius:12px; font-weight:700; font-size:14px; margin-left:8px;">${razlika}</span>`;
         };
 
-        // Generiranje mesečnih vrstic (HTML) za Delovno uspešnost
+        // Generiranje mesečnih vrstic (HTML) za Delovno uspešnost (VSI MESECI)
         let htmlDelovnaMeseci = `<div style="display:grid; grid-template-columns: 85px repeat(12, 1fr); gap:4px; text-align:center; font-size:13px; margin-top:16px;">`;
         htmlDelovnaMeseci += `<div style="font-weight:700; color:#64748b; text-align:left;">MESEC</div>`;
         for(let i=1; i<=12; i++) htmlDelovnaMeseci += `<div style="font-weight:800; color:#64748b;">${i}</div>`;
@@ -283,7 +310,6 @@
         }
         htmlDelovnaMeseci += `</div>`;
 
-
         // Generiranje mesečnih vrstic (HTML) za Letno normo
         let htmlNormaMeseci = `<div style="display:grid; grid-template-columns: 85px repeat(12, 1fr); gap:4px; text-align:center; font-size:13px; margin-bottom:20px;">`;
         htmlNormaMeseci += `<div style="font-weight:700; color:#64748b; text-align:left;">MESEC</div>`;
@@ -300,20 +326,23 @@
         container.innerHTML = `
             <!-- DELOVNA USPEŠNOST SEKCIJA -->
             <div style="margin-bottom: 32px;">
-                <h3 style="margin:0 0 16px 0; font-size:18px; text-transform:uppercase; color:#334155; font-weight:800; letter-spacing:0.5px; border-bottom:2px solid #cbd5e1; padding-bottom:8px;">Delovna uspešnost</h3>
+                <div style="display:flex; justify-content:space-between; align-items:flex-end; border-bottom:2px solid #cbd5e1; padding-bottom:8px; margin-bottom:16px;">
+                    <h3 style="margin:0; font-size:18px; text-transform:uppercase; color:#334155; font-weight:800; letter-spacing:0.5px;">Delovna uspešnost</h3>
+                    <div style="font-size:13px; color:#475569; font-weight:500;">Obdobje kartic: <b style="color:#0f172a;">30. prejšnji — 29. tekoči mesec</b></div>
+                </div>
                 
                 <div style="display:flex; gap:16px; flex-wrap:wrap;">
                     <div style="flex:1; min-width:120px; background:#fffbea; border:1px solid #fef08a; padding:14px; border-radius:12px;">
                         <div style="font-size:14px; color:#a16207; font-weight:700; margin-bottom:6px;">AKTI (A)</div>
-                        <div style="font-size:28px; font-weight:800; color:#854d0e;">${sumA} <span style="font-size:15px; font-weight:600; color:#ca8a04;">(${odstotekDelovnoA}%)</span></div>
+                        <div style="font-size:28px; font-weight:800; color:#854d0e;">${sumA_top} <span style="font-size:15px; font-weight:600; color:#ca8a04;">(${odstotekDelovnoA_top}%)</span></div>
                     </div>
                     <div style="flex:1; min-width:120px; background:#f0fdf4; border:1px solid #bbf7d0; padding:14px; border-radius:12px;">
                         <div style="font-size:14px; color:#166534; font-weight:700; margin-bottom:6px;">PREGLEDI (IP)</div>
-                        <div style="font-size:28px; font-weight:800; color:#15803d;">${sumIP} <span style="font-size:15px; font-weight:600; color:#22c55e;">(${odstotekDelovnoIP}%)</span></div>
+                        <div style="font-size:28px; font-weight:800; color:#15803d;">${sumIP_top} <span style="font-size:15px; font-weight:600; color:#22c55e;">(${odstotekDelovnoIP_top}%)</span></div>
                     </div>
                     <div style="flex:1; min-width:150px; background:#f8fafc; border:1px solid #e2e8f0; padding:14px; border-radius:12px; text-align:center;">
                         <div style="font-size:14px; color:#475569; font-weight:700; margin-bottom:6px;">TOČKE / FAKTOR</div>
-                        <div style="font-size:28px; font-weight:800; color:#0f172a;">${tocke.toFixed(2)} <span style="color:#0ea5e9;">/ ${faktor}</span></div>
+                        <div style="font-size:28px; font-weight:800; color:#0f172a;">${tocke_top.toFixed(2)} <span style="color:#0ea5e9;">/ ${faktor_top}</span></div>
                     </div>
                 </div>
                 ${htmlDelovnaMeseci}
