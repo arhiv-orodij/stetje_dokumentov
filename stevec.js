@@ -497,7 +497,7 @@
             tockeBtn.onmouseout = function(){ this.style.opacity = '0.75'; };
 tockeBtn.onclick = () => showInfo("FORMULA ZA TOČKE IN FAKTOR", "Točke = (Pregledi / 16) + (Akti / 4)\n\nMeje za faktor (polna norma):\n3.0 točk ➔ 4%\n2.5 točk ➔ 3%\n2.0 točk ➔ 2%\n1.5 točk ➔ 1%\n\n(Pri obkljukani polovični normi so meje točk prepolovljene.)");        }
 
-    // --- 6. USTVARJANJE OKNA (MODAL) ---
+// --- 6. USTVARJANJE OKNA (MODAL) ---
     const stariModal = targetDocument.getElementById("moj-top-stat-modal");
     if (stariModal) stariModal.remove();
 
