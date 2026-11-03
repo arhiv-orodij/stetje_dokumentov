@@ -183,10 +183,14 @@
     let odstotekDelovnoA = skupnoDelovno > 0 ? ((sumA / skupnoDelovno) * 100).toFixed(1) + "%" : "0%";
     let odstotekDelovnoIP = skupnoDelovno > 0 ? ((sumIP / skupnoDelovno) * 100).toFixed(1) + "%" : "0%";
 
-    // Izračun skupnih vrednosti in odstotkov za LETNO NORMO
+    // Cilji za LETNO NORMO
+    const ciljNormaA = 54;
+    const ciljNormaIP = 119;
+    
+    // Izračun doseženih odstotkov glede na celoletno normo
+    let dosezenoNormaA = ((normaSumA / ciljNormaA) * 100).toFixed(1) + "%";
+    let dosezenoNormaIP = ((normaSumIP / ciljNormaIP) * 100).toFixed(1) + "%";
     let skupnaNorma = normaSumA + normaSumIP;
-    let odstotekNormaA = skupnaNorma > 0 ? ((normaSumA / skupnaNorma) * 100).toFixed(1) + "%" : "0%";
-    let odstotekNormaIP = skupnaNorma > 0 ? ((normaSumIP / skupnaNorma) * 100).toFixed(1) + "%" : "0%";
 
     // Prikaz rezultatov
     alert(
@@ -197,8 +201,8 @@
         "Vsota točk: " + tocke.toFixed(2) + "\n" +
         "Faktor realizacije: " + faktor + "\n\n" +
         "--- LETNA NORMA ---\n" +
-        "Letna norma (A): " + normaSumA + " (" + odstotekNormaA + ")\n" +
-        "Letna norma (IP): " + normaSumIP + " (" + odstotekNormaIP + ")\n" +
+        "Letna norma (A): " + normaSumA + " od " + ciljNormaA + " (" + dosezenoNormaA + ")\n" +
+        "Letna norma (IP): " + normaSumIP + " od " + ciljNormaIP + " (" + dosezenoNormaIP + ")\n" +
         "Skupaj letna norma (A + IP): " + skupnaNorma
     );
 })();
