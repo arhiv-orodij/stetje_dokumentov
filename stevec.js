@@ -201,7 +201,6 @@
         const sumIP = stats.delovna.totalIP;
         const tocke = (sumIP / 16) + (sumA / 4);
         
-        // PRILAGODITEV: Prepolovitev zahtevanih točk za delovno uspešnost
         const meja4 = isHalfNorm ? 1.5 : 3;
         const meja3 = isHalfNorm ? 1.25 : 2.5;
         const meja2 = isHalfNorm ? 1 : 2;
@@ -220,9 +219,16 @@
         // Izračuni za Letno Normo
         const ciljNormaA = isHalfNorm ? 27 : 54;
         const ciljNormaIP = isHalfNorm ? 59.5 : 119;
+        const ciljSkupaj = ciljNormaA + ciljNormaIP;
         
         let dosezenoNormaA_num = ((stats.norma.totalA / ciljNormaA) * 100);
         let dosezenoNormaIP_num = ((stats.norma.totalIP / ciljNormaIP) * 100);
+        
+        // NOVO: Skupni seštevki in odstotki znotraj zajetih aktov za letno normo
+        let skupnoNorma = stats.norma.totalA + stats.norma.totalIP;
+        let odstotekNormaA = skupnoNorma > 0 ? ((stats.norma.totalA / skupnoNorma) * 100).toFixed(1) : "0";
+        let odstotekNormaIP = skupnoNorma > 0 ? ((stats.norma.totalIP / skupnoNorma) * 100).toFixed(1) : "0";
+        let skupnaRealizacijaLeta = ((skupnoNorma / ciljSkupaj) * 100).toFixed(1);
         
         const zdaj = new Date();
         const zacetekLeta = new Date(zdaj.getFullYear(), 0, 1);
@@ -307,6 +313,22 @@
                     <div style="font-size:12px; color:#64748b;">Mimo je <b>${odstotekLeta_num.toFixed(1)}%</b> leta (${preostaliDni} dni do konca)</div>
                 </div>
                 
+                <!-- NOVI OKVIRJI ZA LETNO NORMO -->
+                <div style="display:flex; gap:16px; flex-wrap:wrap; margin-bottom:16px;">
+                    <div style="flex:1; min-width:120px; background:#fffbea; border:1px solid #fef08a; padding:12px; border-radius:12px;">
+                        <div style="font-size:12px; color:#a16207; font-weight:600; margin-bottom:4px;">AKTI (A)</div>
+                        <div style="font-size:24px; font-weight:800; color:#854d0e;">${stats.norma.totalA} <span style="font-size:13px; font-weight:500; color:#ca8a04;">(${odstotekNormaA}%)</span></div>
+                    </div>
+                    <div style="flex:1; min-width:120px; background:#f0fdf4; border:1px solid #bbf7d0; padding:12px; border-radius:12px;">
+                        <div style="font-size:12px; color:#166534; font-weight:600; margin-bottom:4px;">PREGLEDI (IP)</div>
+                        <div style="font-size:24px; font-weight:800; color:#15803d;">${stats.norma.totalIP} <span style="font-size:13px; font-weight:500; color:#22c55e;">(${odstotekNormaIP}%)</span></div>
+                    </div>
+                    <div style="flex:1; min-width:150px; background:#f8fafc; border:1px solid #e2e8f0; padding:12px; border-radius:12px; text-align:center;">
+                        <div style="font-size:12px; color:#475569; font-weight:600; margin-bottom:4px;">SKUPAJ / REALIZACIJA</div>
+                        <div style="font-size:24px; font-weight:800; color:#0f172a;">${skupnoNorma} <span style="color:#0ea5e9; font-size:16px;">/ ${skupnaRealizacijaLeta}%</span></div>
+                    </div>
+                </div>
+
                 <div style="background:#ffffff; border:1px solid #e2e8f0; padding:16px; border-radius:12px;">
                     <div style="font-size:12px; color:#64748b; margin-bottom:12px; font-style:italic;">
                         *Ciljna letna norma: ${ciljNormaA} aktov in ${ciljNormaIP} pregledov.
