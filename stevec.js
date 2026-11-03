@@ -219,16 +219,13 @@
         // Izračuni za Letno Normo
         const ciljNormaA = isHalfNorm ? 27 : 54;
         const ciljNormaIP = isHalfNorm ? 59.5 : 119;
-        const ciljSkupaj = ciljNormaA + ciljNormaIP;
         
+        // Odstotek realizacije posamezne letne norme
         let dosezenoNormaA_num = ((stats.norma.totalA / ciljNormaA) * 100);
         let dosezenoNormaIP_num = ((stats.norma.totalIP / ciljNormaIP) * 100);
-        
-        let skupnoNorma = stats.norma.totalA + stats.norma.totalIP;
-        let odstotekNormaA = skupnoNorma > 0 ? ((stats.norma.totalA / skupnoNorma) * 100).toFixed(1) : "0";
-        let odstotekNormaIP = skupnoNorma > 0 ? ((stats.norma.totalIP / skupnoNorma) * 100).toFixed(1) : "0";
-        let skupnaRealizacijaLeta = ((skupnoNorma / ciljSkupaj) * 100).toFixed(1);
-        
+        let prikazDosezenoNormaA = dosezenoNormaA_num.toFixed(1) + "%";
+        let prikazDosezenoNormaIP = dosezenoNormaIP_num.toFixed(1) + "%";
+
         const zdaj = new Date();
         const zacetekLeta = new Date(zdaj.getFullYear(), 0, 1);
         const konecLeta = new Date(zdaj.getFullYear(), 11, 31);
@@ -263,7 +260,6 @@
         htmlDelovnaMeseci += `<div style="font-weight:600; color:#166534; text-align:left;">Pregledi (IP)</div>`;
         for(let i=1; i<=12; i++) htmlDelovnaMeseci += `<div style="background:#dcfce7; border-radius:4px; padding:3px 0;">${stats.delovna.months[i].ip || '-'}</div>`;
         
-        // Priprava točk za vsak mesec
         let mesecTocke = [];
         htmlDelovnaMeseci += `<div style="font-weight:600; color:#0f172a; text-align:left;">Točke</div>`;
         for(let i=1; i<=12; i++) {
@@ -272,7 +268,6 @@
             htmlDelovnaMeseci += `<div style="background:#f1f5f9; border-radius:4px; padding:3px 0;">${mt>0 ? mt.toFixed(1) : '-'}</div>`;
         }
         
-        // NOVA VRSTICA: Faktor za vsak mesec
         htmlDelovnaMeseci += `<div style="font-weight:700; color:#0284c7; text-align:left;">Faktor</div>`;
         for(let i=1; i<=12; i++) {
             let mt = mesecTocke[i];
@@ -334,15 +329,11 @@
                 <div style="display:flex; gap:16px; flex-wrap:wrap; margin-bottom:20px;">
                     <div style="flex:1; min-width:120px; background:#fffbea; border:1px solid #fef08a; padding:14px; border-radius:12px;">
                         <div style="font-size:14px; color:#a16207; font-weight:700; margin-bottom:6px;">AKTI (A)</div>
-                        <div style="font-size:28px; font-weight:800; color:#854d0e;">${stats.norma.totalA} <span style="font-size:15px; font-weight:600; color:#ca8a04;">(${odstotekNormaA}%)</span></div>
+                        <div style="font-size:28px; font-weight:800; color:#854d0e;">${stats.norma.totalA} <span style="font-size:15px; font-weight:600; color:#ca8a04;">(${prikazDosezenoNormaA})</span></div>
                     </div>
                     <div style="flex:1; min-width:120px; background:#f0fdf4; border:1px solid #bbf7d0; padding:14px; border-radius:12px;">
                         <div style="font-size:14px; color:#166534; font-weight:700; margin-bottom:6px;">PREGLEDI (IP)</div>
-                        <div style="font-size:28px; font-weight:800; color:#15803d;">${stats.norma.totalIP} <span style="font-size:15px; font-weight:600; color:#22c55e;">(${odstotekNormaIP}%)</span></div>
-                    </div>
-                    <div style="flex:1; min-width:150px; background:#f8fafc; border:1px solid #e2e8f0; padding:14px; border-radius:12px; text-align:center;">
-                        <div style="font-size:14px; color:#475569; font-weight:700; margin-bottom:6px;">SKUPAJ / REALIZACIJA</div>
-                        <div style="font-size:28px; font-weight:800; color:#0f172a;">${skupnoNorma} <span style="color:#0ea5e9; font-size:18px;">/ ${skupnaRealizacijaLeta}%</span></div>
+                        <div style="font-size:28px; font-weight:800; color:#15803d;">${stats.norma.totalIP} <span style="font-size:15px; font-weight:600; color:#22c55e;">(${prikazDosezenoNormaIP})</span></div>
                     </div>
                 </div>
 
