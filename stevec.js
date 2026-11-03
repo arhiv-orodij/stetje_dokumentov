@@ -178,7 +178,7 @@
         faktor = "1%";
     }
 
-    // Izračun skupnih vrednosti in odstotkov za DELOVNO USPEŠNOST
+// Izračun skupnih vrednosti in odstotkov za DELOVNO USPEŠNOST
     let skupnoDelovno = sumA + sumIP;
     let odstotekDelovnoA = skupnoDelovno > 0 ? ((sumA / skupnoDelovno) * 100).toFixed(1) + "%" : "0%";
     let odstotekDelovnoIP = skupnoDelovno > 0 ? ((sumIP / skupnoDelovno) * 100).toFixed(1) + "%" : "0%";
@@ -190,7 +190,31 @@
     // Izračun doseženih odstotkov glede na celoletno normo
     let dosezenoNormaA = ((normaSumA / ciljNormaA) * 100).toFixed(1) + "%";
     let dosezenoNormaIP = ((normaSumIP / ciljNormaIP) * 100).toFixed(1) + "%";
-    let skupnaNorma = normaSumA + normaSumIP;
+
+    // --- NOVA STATISTIKA: ČASOVNI PRESEK (Kje si danes) ---
+    const zdaj = new Date();
+    const zacetekLeta = new Date(zdaj.getFullYear(), 0, 1);
+    const konecLeta = new Date(zdaj.getFullYear(), 11, 31);
+    const msVDnevu = 1000 * 60 * 60 * 24;
+    
+    // Izračun dni
+    const pretekliDni = Math.floor((zdaj - zacetekLeta) / msVDnevu) + 1; // vključno z današnjim dnem
+    const vsiDniLeta = Math.floor((konecLeta - zacetekLeta) / msVDnevu) + 1;
+    const preostaliDni = vsiDniLeta - pretekliDni;
+    
+    // Odstotek preteklega leta
+    const casovniFaktor = pretekliDni / vsiDniLeta;
+    const odstotekLeta = (casovniFaktor * 100).toFixed(1) + "%";
+    
+    // Pričakovano število glede na pretekel čas
+    const pricakovanoA = Math.round(ciljNormaA * casovniFaktor);
+    const pricakovanoIP = Math.round(ciljNormaIP * casovniFaktor);
+    
+    // Razlika od pričakovanega stanja (zaostanek ali prednost)
+    const razlikaA = normaSumA - pricakovanoA;
+    const razlikaIP = normaSumIP - pricakovanoIP;
+    const predznakA = razlikaA >= 0 ? "+" : "";
+    const predznakIP = razlikaIP >= 0 ? "+" : "";
 
     // Prikaz rezultatov
     alert(
@@ -201,8 +225,11 @@
         "Vsota točk: " + tocke.toFixed(2) + "\n" +
         "Faktor realizacije: " + faktor + "\n\n" +
         "--- LETNA NORMA ---\n" +
-        "Letna norma (A): " + normaSumA + " od " + ciljNormaA + " (" + dosezenoNormaA + ")\n" +
-        "Letna norma (IP): " + normaSumIP + " od " + ciljNormaIP + " (" + dosezenoNormaIP + ")\n" +
-        "Skupaj letna norma (A + IP): " + skupnaNorma
+        "Skupno število aktov (A): " + normaSumA + " od " + ciljNormaA + " (" + dosezenoNormaA + ")\n" +
+        "Skupno število pregledov (IP): " + normaSumIP + " od " + ciljNormaIP + " (" + dosezenoNormaIP + ")\n\n" +
+        "--- KJE SEM DANES? (" + odstotekLeta + " leta je mimo) ---\n" +
+        "Do konca leta: še " + preostaliDni + " dni.\n" +
+        "Pričakovani akti (A) do danes: " + pricakovanoA + " (Stanje: " + predznakA + razlikaA + ")\n" +
+        "Pričakovani pregledi (IP) do danes: " + pricakovanoIP + " (Stanje: " + predznakIP + razlikaIP + ")"
     );
 })();
