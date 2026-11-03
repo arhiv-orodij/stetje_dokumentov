@@ -1,28 +1,23 @@
 (function(){
-    // DOKUMENTI ZA DELOVNO USPEŠNOST (Mesečno / Faktor)
+    // --- 1. DOKUMENTI ZA DELOVNO USPEŠNOST (Točke in Faktor) ---
     const docsA = [
         "Odločba: odklop od infrastrukture",
         "Odločba: odprava in nadomestna",
         "Odločba: opomin",
         "Odločba: pisni odpravek ustne odločbe",
-        "Odločba: pisni odpravek ustne odločbe (N)",
         "Odločba: plačilni nalog",
         "Odločba: prekrškovna",
         "Odločba: upravna",
-        "Odločba: upravna (N)",
         "Sklep: denarna kazen",
         "Sklep: denarna kazen v upravni izvršbi s PRISILITVIJO",
-        "Sklep: dovolitev izvršbe (po II.osebi)",
-        "Sklep: dovolitev izvršbe (po II.osebi) (N)",
         "Sklep: dovolitev izvršbe (po II.OSEBI)_G",
         "Sklep: dovolitev izvršbe (PRISILITEV)",
-        "Sklep: dovolitev izvršbe (PRISILITEV) (N)",
-        "Sklep: dovolitev izvršbe s prisilitvijo-POSEBNE PREPOVEDI",
-        "Sklep: o izvršbi z denarno prisilitvijo (N)",
         "Sklep: o stroških izvršbe po II. osebi",
         "Sklep: o založitvi stroškov",
         "Sklep: ustavitev izvršbe",
         "Sklep: ustavitev postopka",
+        "Sklep: dovolitev izvršbe (po II.osebi)",
+        "Sklep: dovolitev izvršbe s prisilitvijo-POSEBNE PREPOVEDI",
         "Zapisnik: izvršba po I.osebi (legalizacija)"
     ];
 
@@ -30,18 +25,15 @@
         "Zapisnik: izredni kontrolni pregled",
         "Zapisnik: izredni kontrolni pregled - izvršba po I.osebi (izvršitev odločbe)",
         "Zapisnik: izredni pregled",
-        "Zapisnik: izredni pregled (N)",
         "Zapisnik: izredni pregled z zaslišanjem",
         "Zapisnik: izvršba po II.osebi",
-        "Zapisnik: o izvršbi po II.osebi (N)",
         "Zapisnik: redni kontrolni pregled",
         "Zapisnik: redni kontrolni pregled - izvršba po I.osebi (izvršitev odločbe)",
         "Zapisnik: redni pregled",
-        "Zapisnik: redni pregled (N)",
         "Zapisnik: redni pregled z zaslišanjem"
     ];
 
-    // DOKUMENTI ZA LETNO NORMO
+    // --- 2. DOKUMENTI ZA LETNO NORMO ---
     const normaDocsA = [
         "Odločba: odklop od infrastrukture",
         "Odločba: odprava in nadomestna",
@@ -83,8 +75,7 @@
         "Zapisnik: zaslišanje",
         "Sklep: odlog izvršbe",
         "Sklep: upravni",
-        "Sklep: stroški postopka",
-        "Zapisnik: prekrškovni"
+        "Sklep: stroški postopka"
     ];
 
     const normaDocsIP = [
@@ -96,13 +87,22 @@
         "Zapisnik: redni kontrolni pregled",
         "Zapisnik: redni kontrolni pregled - izvršba po I.osebi (izvršitev odločbe)",
         "Zapisnik: redni pregled",
-        "Zapisnik: redni pregled z zaslišanjem"
+        "Zapisnik: redni pregled z zaslišanjem",
+        "Zapisnik: prekrškovni" 
     ];
 
-    let sumA = 0, sumIP = 0;
-    let normaSumA = 0, normaSumIP = 0;
+    // --- 3. SPREMENLJIVKE ZA ZAJEM PODATKOV ---
+    let stats = {
+        delovna: { totalA: 0, totalIP: 0, months: {} },
+        norma: { totalA: 0, totalIP: 0, months: {} }
+    };
     
-    // Ključno: Shranimo referenco na tisti okvir (frame), kjer najdemo podatke!
+    // Inicializacija mesecev (1-12)
+    for (let i = 1; i <= 12; i++) {
+        stats.delovna.months[i] = { a: 0, ip: 0 };
+        stats.norma.months[i] = { a: 0, ip: 0 };
+    }
+
     let targetDocument = document; 
 
     function clean(str) {
@@ -110,13 +110,17 @@
     }
 
     function checkDocMatch(docString, list) {
-        return list.some(item => docString.toLowerCase().startsWith(item.toLowerCase()));
+        let searchDoc = docString.toLowerCase();
+        return list.some(item => searchDoc.startsWith(item.toLowerCase()));
     }
 
+    // --- 4. ANALIZA TABEL IN ZAJEM ---
     function processDoc(doc) {
         if (!doc) return;
         const rows = doc.querySelectorAll('tr');
         let foundDataInThisDoc = false;
+
+        const dateRegex = /(\d{1,2})\.(\d{1,2})\.(\d{4})/;
 
         rows.forEach(tr => {
             const cells = tr.querySelectorAll('td');
@@ -125,43 +129,52 @@
             const smer = clean(cells[0].textContent).toUpperCase();
             if (!['I', 'L'].includes(smer)) return;
             
+            // Izlušči datum in mesec
+            let dateText = clean(cells[1].textContent);
+            let match = dateText.match(dateRegex);
+            let month = match ? parseInt(match[2], 10) : null;
+            if(!month || month < 1 || month > 12) month = 1; // Fallback, če datuma ni
+
+            // Izlušči vrsto dokumenta
             let docName = "";
             for (let i = 2; i < cells.length; i++) {
                 let cellText = clean(cells[i].textContent);
-                if (cellText.includes(':') && (cellText.includes('Sklep') || cellText.includes('Odločba') || cellText.includes('Zapisnik'))) {
+                if (cellText.includes(':') && (cellText.includes('Sklep') || cellText.includes('Odločba') || cellText.includes('Zapisnik') || cellText.includes('x(IPS)'))) {
                      docName = cellText.split(';')[0].trim(); 
                      break;
                 }
             }
 
             if (!docName) return;
-
             let counted = false;
             
             // Štetje: DELOVNA USPEŠNOST
             if (checkDocMatch(docName, docsA)) {
-                sumA++;
-                tr.style.backgroundColor = '#fff3cd'; // Rumena
+                stats.delovna.totalA++;
+                stats.delovna.months[month].a++;
+                tr.style.backgroundColor = '#fff3cd'; // Obarvamo A (Delovno)
                 counted = true;
             } else if (checkDocMatch(docName, docsIP)) {
-                sumIP++;
-                tr.style.backgroundColor = '#d4edda'; // Zelena
+                stats.delovna.totalIP++;
+                stats.delovna.months[month].ip++;
+                tr.style.backgroundColor = '#d4edda'; // Obarvamo IP (Delovno)
                 counted = true;
             }
 
             // Štetje: LETNA NORMA
             if (checkDocMatch(docName, normaDocsA)) {
-                normaSumA++;
+                stats.norma.totalA++;
+                stats.norma.months[month].a++;
                 counted = true;
             } else if (checkDocMatch(docName, normaDocsIP)) {
-                normaSumIP++;
+                stats.norma.totalIP++;
+                stats.norma.months[month].ip++;
                 counted = true;
             }
             
             if (counted) foundDataInThisDoc = true;
         });
         
-        // Če smo v tem oknu našli podatke, si ga zapomnimo za prikaz UI modal-a
         if (foundDataInThisDoc && doc.body) {
             targetDocument = doc;
         }
@@ -178,48 +191,152 @@
 
     processWindow(window);
 
-    // --- MATEMATIKA IN IZRAČUNI ---
-    const tocke = (sumIP / 16) + (sumA / 4);
-    let faktor = "0%";
-    if (tocke >= 3) faktor = "4%";
-    else if (tocke >= 2.5) faktor = "3%";
-    else if (tocke >= 2) faktor = "2%";
-    else if (tocke >= 1.5) faktor = "1%";
+    // --- 5. LOGIKA ZA UI IN IZRAČUNE ---
+    function renderUI(isHalfNorm) {
+        let container = targetDocument.getElementById('moj-top-stat-vsebina');
+        if (!container) return;
 
-    let skupnoDelovno = sumA + sumIP;
-    let odstotekDelovnoA = skupnoDelovno > 0 ? ((sumA / skupnoDelovno) * 100).toFixed(1) : "0";
-    let odstotekDelovnoIP = skupnoDelovno > 0 ? ((sumIP / skupnoDelovno) * 100).toFixed(1) : "0";
+        // Izračuni za Delovno Uspešnost
+        const sumA = stats.delovna.totalA;
+        const sumIP = stats.delovna.totalIP;
+        const tocke = (sumIP / 16) + (sumA / 4);
+        
+        let faktor = "0%";
+        if (tocke >= 3) faktor = "4%";
+        else if (tocke >= 2.5) faktor = "3%";
+        else if (tocke >= 2) faktor = "2%";
+        else if (tocke >= 1.5) faktor = "1%";
 
-    const ciljNormaA = 54;
-    const ciljNormaIP = 119;
-    
-    let dosezenoNormaA_num = ((normaSumA / ciljNormaA) * 100);
-    let dosezenoNormaIP_num = ((normaSumIP / ciljNormaIP) * 100);
-    
-    const zdaj = new Date();
-    const zacetekLeta = new Date(zdaj.getFullYear(), 0, 1);
-    const konecLeta = new Date(zdaj.getFullYear(), 11, 31);
-    const msVDnevu = 1000 * 60 * 60 * 24;
-    
-    const pretekliDni = Math.floor((zdaj - zacetekLeta) / msVDnevu) + 1; 
-    const vsiDniLeta = Math.floor((konecLeta - zacetekLeta) / msVDnevu) + 1;
-    const preostaliDni = vsiDniLeta - pretekliDni;
-    
-    const casovniFaktor = pretekliDni / vsiDniLeta;
-    const odstotekLeta_num = (casovniFaktor * 100);
-    
-    const pricakovanoA = Math.round(ciljNormaA * casovniFaktor);
-    const pricakovanoIP = Math.round(ciljNormaIP * casovniFaktor);
-    
-    const razlikaA = normaSumA - pricakovanoA;
-    const razlikaIP = normaSumIP - pricakovanoIP;
-    
-    const renderBadge = (razlika) => {
-        if (razlika >= 0) return `<span style="background:#dcfce7; color:#166534; padding:2px 8px; border-radius:12px; font-weight:600; font-size:12px;">+${razlika}</span>`;
-        return `<span style="background:#fee2e2; color:#991b1b; padding:2px 8px; border-radius:12px; font-weight:600; font-size:12px;">${razlika}</span>`;
-    };
+        let skupnoDelovno = sumA + sumIP;
+        let odstotekDelovnoA = skupnoDelovno > 0 ? ((sumA / skupnoDelovno) * 100).toFixed(1) : "0";
+        let odstotekDelovnoIP = skupnoDelovno > 0 ? ((sumIP / skupnoDelovno) * 100).toFixed(1) : "0";
 
-    // --- KREIRANJE UI OKNA ---
+        // Izračuni za Letno Normo
+        const ciljNormaA = isHalfNorm ? 27 : 54;
+        const ciljNormaIP = isHalfNorm ? 59.5 : 119;
+        
+        let dosezenoNormaA_num = ((stats.norma.totalA / ciljNormaA) * 100);
+        let dosezenoNormaIP_num = ((stats.norma.totalIP / ciljNormaIP) * 100);
+        
+        const zdaj = new Date();
+        const zacetekLeta = new Date(zdaj.getFullYear(), 0, 1);
+        const konecLeta = new Date(zdaj.getFullYear(), 11, 31);
+        const msVDnevu = 1000 * 60 * 60 * 24;
+        
+        const pretekliDni = Math.floor((zdaj - zacetekLeta) / msVDnevu) + 1; 
+        const vsiDniLeta = Math.floor((konecLeta - zacetekLeta) / msVDnevu) + 1;
+        const preostaliDni = vsiDniLeta - pretekliDni;
+        
+        const casovniFaktor = pretekliDni / vsiDniLeta;
+        const odstotekLeta_num = (casovniFaktor * 100);
+        
+        const pricakovanoA = Math.round(ciljNormaA * casovniFaktor);
+        const pricakovanoIP = Math.round(ciljNormaIP * casovniFaktor);
+        
+        const razlikaA = stats.norma.totalA - pricakovanoA;
+        const razlikaIP = stats.norma.totalIP - pricakovanoIP;
+        
+        const renderBadge = (razlika) => {
+            if (razlika >= 0) return `<span style="background:#dcfce7; color:#166534; padding:2px 8px; border-radius:12px; font-weight:600; font-size:12px; margin-left:6px;">+${razlika}</span>`;
+            return `<span style="background:#fee2e2; color:#991b1b; padding:2px 8px; border-radius:12px; font-weight:600; font-size:12px; margin-left:6px;">${razlika}</span>`;
+        };
+
+        // Generiranje mesečnih vrstic (HTML)
+        let htmlDelovnaMeseci = `<div style="display:grid; grid-template-columns: 80px repeat(12, 1fr); gap:4px; text-align:center; font-size:11px; margin-top:12px;">`;
+        htmlDelovnaMeseci += `<div style="font-weight:700; color:#64748b; text-align:left;">MESEC</div>`;
+        for(let i=1; i<=12; i++) htmlDelovnaMeseci += `<div style="font-weight:700; color:#64748b;">${i}</div>`;
+        
+        htmlDelovnaMeseci += `<div style="font-weight:600; color:#a16207; text-align:left;">Akti (A)</div>`;
+        for(let i=1; i<=12; i++) htmlDelovnaMeseci += `<div style="background:#fef9c3; border-radius:4px; padding:2px 0;">${stats.delovna.months[i].a || '-'}</div>`;
+        
+        htmlDelovnaMeseci += `<div style="font-weight:600; color:#166534; text-align:left;">Pregledi (IP)</div>`;
+        for(let i=1; i<=12; i++) htmlDelovnaMeseci += `<div style="background:#dcfce7; border-radius:4px; padding:2px 0;">${stats.delovna.months[i].ip || '-'}</div>`;
+        
+        htmlDelovnaMeseci += `<div style="font-weight:600; color:#0f172a; text-align:left;">Točke</div>`;
+        for(let i=1; i<=12; i++) {
+            let mt = (stats.delovna.months[i].ip / 16) + (stats.delovna.months[i].a / 4);
+            htmlDelovnaMeseci += `<div style="background:#f1f5f9; border-radius:4px; padding:2px 0;">${mt>0 ? mt.toFixed(1) : '-'}</div>`;
+        }
+        htmlDelovnaMeseci += `</div>`;
+
+
+        let htmlNormaMeseci = `<div style="display:grid; grid-template-columns: 80px repeat(12, 1fr); gap:4px; text-align:center; font-size:11px; margin-bottom:16px;">`;
+        htmlNormaMeseci += `<div style="font-weight:700; color:#64748b; text-align:left;">MESEC</div>`;
+        for(let i=1; i<=12; i++) htmlNormaMeseci += `<div style="font-weight:700; color:#64748b;">${i}</div>`;
+        
+        htmlNormaMeseci += `<div style="font-weight:600; color:#b45309; text-align:left;">Akti (A)</div>`;
+        for(let i=1; i<=12; i++) htmlNormaMeseci += `<div style="background:#ffedd5; border-radius:4px; padding:2px 0;">${stats.norma.months[i].a || '-'}</div>`;
+        
+        htmlNormaMeseci += `<div style="font-weight:600; color:#047857; text-align:left;">Pregledi (IP)</div>`;
+        for(let i=1; i<=12; i++) htmlNormaMeseci += `<div style="background:#d1fae5; border-radius:4px; padding:2px 0;">${stats.norma.months[i].ip || '-'}</div>`;
+        htmlNormaMeseci += `</div>`;
+
+        // Združevanje vsega v container
+        container.innerHTML = `
+            <!-- DELOVNA USPEŠNOST SEKCIJA -->
+            <div style="margin-bottom: 24px;">
+                <h3 style="margin:0 0 12px 0; font-size:13px; text-transform:uppercase; color:#64748b; font-weight:700; letter-spacing:0.5px;">Delovna uspešnost</h3>
+                
+                <div style="display:flex; gap:16px; flex-wrap:wrap;">
+                    <div style="flex:1; min-width:120px; background:#fffbea; border:1px solid #fef08a; padding:12px; border-radius:12px;">
+                        <div style="font-size:12px; color:#a16207; font-weight:600; margin-bottom:4px;">AKTI (A)</div>
+                        <div style="font-size:24px; font-weight:800; color:#854d0e;">${sumA} <span style="font-size:13px; font-weight:500; color:#ca8a04;">(${odstotekDelovnoA}%)</span></div>
+                    </div>
+                    <div style="flex:1; min-width:120px; background:#f0fdf4; border:1px solid #bbf7d0; padding:12px; border-radius:12px;">
+                        <div style="font-size:12px; color:#166534; font-weight:600; margin-bottom:4px;">PREGLEDI (IP)</div>
+                        <div style="font-size:24px; font-weight:800; color:#15803d;">${sumIP} <span style="font-size:13px; font-weight:500; color:#22c55e;">(${odstotekDelovnoIP}%)</span></div>
+                    </div>
+                    <div style="flex:1; min-width:150px; background:#f8fafc; border:1px solid #e2e8f0; padding:12px; border-radius:12px; text-align:center;">
+                        <div style="font-size:12px; color:#475569; font-weight:600; margin-bottom:4px;">TOČKE / FAKTOR</div>
+                        <div style="font-size:24px; font-weight:800; color:#0f172a;">${tocke.toFixed(2)} <span style="color:#0ea5e9;">/ ${faktor}</span></div>
+                    </div>
+                </div>
+                ${htmlDelovnaMeseci}
+            </div>
+
+            <!-- LETNA NORMA SEKCIJA -->
+            <div>
+                <div style="display:flex; justify-content:space-between; align-items:flex-end; margin-bottom:12px;">
+                    <h3 style="margin:0; font-size:13px; text-transform:uppercase; color:#64748b; font-weight:700; letter-spacing:0.5px;">Letna norma</h3>
+                    <div style="font-size:12px; color:#64748b;">Mimo je <b>${odstotekLeta_num.toFixed(1)}%</b> leta (${preostaliDni} dni do konca)</div>
+                </div>
+                
+                <div style="background:#ffffff; border:1px solid #e2e8f0; padding:16px; border-radius:12px;">
+                    <div style="font-size:12px; color:#64748b; margin-bottom:12px; font-style:italic;">
+                        *Ciljna letna norma: ${ciljNormaA} aktov in ${ciljNormaIP} pregledov.
+                    </div>
+                    
+                    ${htmlNormaMeseci}
+
+                    <div style="display:flex; flex-direction:column; gap:16px;">
+                        <!-- Akti Progress -->
+                        <div>
+                            <div style="display:flex; justify-content:space-between; font-size:13px; margin-bottom:6px; font-weight:600; color:#334155;">
+                                <span>Akti: ${stats.norma.totalA} / ${ciljNormaA} <span style="color:#64748b; font-weight:400;">(${dosezenoNormaA_num.toFixed(1)}%)</span></span>
+                                <span>Pričakovano do danes: ${pricakovanoA} ${renderBadge(razlikaA)}</span>
+                            </div>
+                            <div style="width:100%; background:#f1f5f9; height:8px; border-radius:4px; overflow:hidden;">
+                                <div style="width:${Math.min(dosezenoNormaA_num, 100)}%; background:${dosezenoNormaA_num >= odstotekLeta_num ? '#f59e0b' : '#ef4444'}; height:100%; border-radius:4px; transition:width 0.5s ease-in-out;"></div>
+                            </div>
+                        </div>
+
+                        <!-- Pregledi Progress -->
+                        <div>
+                            <div style="display:flex; justify-content:space-between; font-size:13px; margin-bottom:6px; font-weight:600; color:#334155;">
+                                <span>Pregledi: ${stats.norma.totalIP} / ${ciljNormaIP} <span style="color:#64748b; font-weight:400;">(${dosezenoNormaIP_num.toFixed(1)}%)</span></span>
+                                <span>Pričakovano do danes: ${pricakovanoIP} ${renderBadge(razlikaIP)}</span>
+                            </div>
+                            <div style="width:100%; background:#f1f5f9; height:8px; border-radius:4px; overflow:hidden;">
+                                <div style="width:${Math.min(dosezenoNormaIP_num, 100)}%; background:${dosezenoNormaIP_num >= odstotekLeta_num ? '#10b981' : '#ef4444'}; height:100%; border-radius:4px; transition:width 0.5s ease-in-out;"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        `;
+    }
+
+    // --- 6. USTVARJANJE OKNA (MODAL) ---
     const stariModal = targetDocument.getElementById("moj-top-stat-modal");
     if (stariModal) stariModal.remove();
 
@@ -228,96 +345,49 @@
     overlay.style.cssText = "position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(15, 23, 42, 0.6); z-index:999999; display:flex; align-items:center; justify-content:center; font-family:system-ui, -apple-system, sans-serif; overflow:auto; margin:0; padding:20px; box-sizing:border-box;";
 
     const modalHTML = `
-        <div style="background:#ffffff; width:100%; max-width:650px; border-radius:16px; box-shadow:0 25px 50px -12px rgba(0,0,0,0.5); overflow:hidden; display:flex; flex-direction:column; position:relative; margin:auto;">
+        <div style="background:#ffffff; width:100%; max-width:700px; border-radius:16px; box-shadow:0 25px 50px -12px rgba(0,0,0,0.5); display:flex; flex-direction:column; position:relative; margin:auto;">
             
-            <div style="background:#f8fafc; padding:20px 24px; border-bottom:1px solid #e2e8f0; display:flex; justify-content:space-between; align-items:center;">
+            <!-- GLAVA -->
+            <div style="background:#f8fafc; padding:16px 24px; border-bottom:1px solid #e2e8f0; display:flex; justify-content:space-between; align-items:center; border-radius: 16px 16px 0 0;">
                 <h2 style="margin:0; font-size:18px; color:#0f172a; font-weight:700; letter-spacing:-0.5px;">Statistika Realizacije</h2>
-                <button id="zapri-stat-btn" style="background:none; border:none; font-size:28px; color:#64748b; cursor:pointer; line-height:1; padding:0 5px;">&times;</button>
-            </div>
-
-            <div style="padding:24px; display:flex; flex-direction:column; gap:24px;">
                 
-                <div>
-                    <h3 style="margin:0 0 12px 0; font-size:13px; text-transform:uppercase; color:#64748b; font-weight:700; letter-spacing:0.5px;">Delovna uspešnost</h3>
-                    <div style="display:flex; gap:16px; flex-wrap:wrap;">
-                        <div style="flex:1; min-width:120px; background:#fffbea; border:1px solid #fef08a; padding:16px; border-radius:12px;">
-                            <div style="font-size:12px; color:#a16207; font-weight:600; margin-bottom:4px;">AKTI (A)</div>
-                            <div style="font-size:24px; font-weight:800; color:#854d0e;">${sumA} <span style="font-size:14px; font-weight:500; color:#ca8a04;">(${odstotekDelovnoA}%)</span></div>
-                        </div>
-                        <div style="flex:1; min-width:120px; background:#f0fdf4; border:1px solid #bbf7d0; padding:16px; border-radius:12px;">
-                            <div style="font-size:12px; color:#166534; font-weight:600; margin-bottom:4px;">PREGLEDI (IP)</div>
-                            <div style="font-size:24px; font-weight:800; color:#15803d;">${sumIP} <span style="font-size:14px; font-weight:500; color:#22c55e;">(${odstotekDelovnoIP}%)</span></div>
-                        </div>
-                        <div style="flex:1; min-width:150px; background:#f8fafc; border:1px solid #e2e8f0; padding:16px; border-radius:12px; text-align:center;">
-                            <div style="font-size:12px; color:#475569; font-weight:600; margin-bottom:4px;">TOČKE / FAKTOR</div>
-                            <div style="font-size:24px; font-weight:800; color:#0f172a;">${tocke.toFixed(2)} <span style="color:#0ea5e9;">/ ${faktor}</span></div>
-                        </div>
-                    </div>
-                </div>
-
-                <div>
-                    <div style="display:flex; justify-content:space-between; align-items:flex-end; margin-bottom:12px;">
-                        <h3 style="margin:0; font-size:13px; text-transform:uppercase; color:#64748b; font-weight:700; letter-spacing:0.5px;">Letna norma</h3>
-                        <div style="font-size:12px; color:#64748b;">Mimo je <b>${odstotekLeta_num.toFixed(1)}%</b> leta (${preostaliDni} dni)</div>
-                    </div>
-                    
-                    <div style="display:flex; flex-direction:column; gap:16px; background:#ffffff; border:1px solid #e2e8f0; padding:16px; border-radius:12px;">
-                        
-                        <div>
-                            <div style="display:flex; justify-content:space-between; font-size:13px; margin-bottom:6px; font-weight:600; color:#334155;">
-                                <span>Akti: ${normaSumA} / ${ciljNormaA} <span style="color:#64748b; font-weight:400;">(${dosezenoNormaA_num.toFixed(1)}%)</span></span>
-                                <span>Pričakovano: ${pricakovanoA} ${renderBadge(razlikaA)}</span>
-                            </div>
-                            <div style="width:100%; background:#f1f5f9; height:8px; border-radius:4px; overflow:hidden;">
-                                <div style="width:${Math.min(dosezenoNormaA_num, 100)}%; background:${dosezenoNormaA_num >= odstotekLeta_num ? '#10b981' : '#f59e0b'}; height:100%; border-radius:4px; transition:width 1s ease-in-out;"></div>
-                            </div>
-                        </div>
-
-                        <div>
-                            <div style="display:flex; justify-content:space-between; font-size:13px; margin-bottom:6px; font-weight:600; color:#334155;">
-                                <span>Pregledi: ${normaSumIP} / ${ciljNormaIP} <span style="color:#64748b; font-weight:400;">(${dosezenoNormaIP_num.toFixed(1)}%)</span></span>
-                                <span>Pričakovano: ${pricakovanoIP} ${renderBadge(razlikaIP)}</span>
-                            </div>
-                            <div style="width:100%; background:#f1f5f9; height:8px; border-radius:4px; overflow:hidden;">
-                                <div style="width:${Math.min(dosezenoNormaIP_num, 100)}%; background:${dosezenoNormaIP_num >= odstotekLeta_num ? '#10b981' : '#f59e0b'}; height:100%; border-radius:4px; transition:width 1s ease-in-out;"></div>
-                            </div>
-                        </div>
-
-                    </div>
+                <div style="display:flex; align-items:center; gap:16px;">
+                    <label style="display:flex; align-items:center; gap:6px; font-size:13px; font-weight:600; color:#475569; cursor:pointer;">
+                        <input type="checkbox" id="polovicna-norma-checkbox" style="width:16px; height:16px; cursor:pointer;">
+                        Polovične norme
+                    </label>
+                    <button id="zapri-stat-btn" style="background:none; border:none; font-size:28px; color:#64748b; cursor:pointer; line-height:1; padding:0 5px;">&times;</button>
                 </div>
             </div>
+
+            <!-- VSEBINA (se polni dinamično) -->
+            <div id="moj-top-stat-vsebina" style="padding:24px; display:flex; flex-direction:column;"></div>
+            
         </div>
     `;
 
     overlay.innerHTML = modalHTML;
     
-    // Varovalka - če sistem kljub vsemu blokira prikaz okna
-    let uiPrikazan = false;
     try {
         targetDocument.body.appendChild(overlay);
-        uiPrikazan = true;
         
+        // Začetni render (polna norma)
+        renderUI(false);
+        
+        // Dogodek za kljukico "Polovične norme"
+        const checkbox = targetDocument.getElementById("polovicna-norma-checkbox");
+        checkbox.addEventListener('change', function() {
+            renderUI(this.checked);
+        });
+
+        // Dogodki za zapiranje okna
         targetDocument.getElementById("zapri-stat-btn").addEventListener("click", () => overlay.remove());
         overlay.addEventListener("click", (e) => {
             if(e.target === overlay) overlay.remove();
         });
+        
     } catch(err) {
         console.error("Ne morem dodati okna v body", err);
+        alert("Sistem preprečuje izris grafičnega okna. Preverite konzolo.");
     }
-
-    // Varnostni rezervni plan: Če se fancy okno po 0.5s ni uspelo dodati, sprožimo navadni stari alert
-    setTimeout(() => {
-        if (!uiPrikazan || !targetDocument.getElementById("moj-top-stat-modal")) {
-            alert(
-                "--- DELOVNA USPEŠNOST ---\n" +
-                "Akti (A): " + sumA + "\nPregledi (IP): " + sumIP + "\n" +
-                "Faktor: " + faktor + "\n\n" +
-                "--- LETNA NORMA ---\n" +
-                "Akti (A): " + normaSumA + " / " + ciljNormaA + "\n" +
-                "Pregledi (IP): " + normaSumIP + " / " + ciljNormaIP + "\n\n" +
-                "(Opomba: Sistem preprečuje grafični prikaz, zato je prikazano kot tekst.)"
-            );
-        }
-    }, 500);
-
 })();
