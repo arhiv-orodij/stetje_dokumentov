@@ -115,7 +115,7 @@
         return new Date(year, month, 0).getDate();
     }
 
-    function isCurrentPeriod(d, m, y) {
+function isCurrentPeriod(d, m, y) {
         let prejsnjiMesec = trenutniMesec === 1 ? 12 : trenutniMesec - 1;
         let letoPrejsnjega = trenutniMesec === 1 ? trenutnoLeto - 1 : trenutnoLeto;
 
