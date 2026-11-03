@@ -1,113 +1,115 @@
 (function(){
-    // OBSTOJEČI DOKUMENTI (Mesečno / Faktor)
-    const docsA = {
-        "Odločba: odklop od infrastrukture": ["I"],
-        "Odločba: odprava in nadomestna": ["I"],
-        "Odločba: opomin": ["I"],
-        "Odločba: pisni odpravek ustne odločbe": ["I"],
-        "Odločba: pisni odpravek ustne odločbe (N)": ["I"],
-        "Odločba: plačilni nalog": ["I"],
-        "Odločba: prekrškovna": ["I"],
-        "Odločba: upravna": ["I"],
-        "Odločba: upravna (N)": ["I"],
-        "Sklep: denarna kazen": ["I"],
-        "Sklep: denarna kazen v upravni izvršbi s PRISILITVIJO": ["I"],
-        "Sklep: dovolitev izvršbe (po II.osebi)": ["I"],
-        "Sklep: dovolitev izvršbe (po II.osebi) (N)": ["I"],
-        "Sklep: dovolitev izvršbe (po II.OSEBI)_G": ["I"],
-        "Sklep: dovolitev izvršbe (PRISILITEV)": ["I"],
-        "Sklep: dovolitev izvršbe (PRISILITEV) (N)": ["I"],
-        "Sklep: dovolitev izvršbe s prisilitvijo-POSEBNE PREPOVEDI": ["I"],
-        "Sklep: o izvršbi z denarno prisilitvijo (N)": ["I"],
-        "Sklep: o stroških izvršbe po II. osebi": ["I"],
-        "Sklep: o založitvi stroškov": ["I"],
-        "Sklep: ustavitev izvršbe": ["I"],
-        "Sklep: ustavitev postopka": ["I"],
-        "Zapisnik: izvršba po I.osebi (legalizacija)": ["I", "L"]
-    };
+    // DOKUMENTI ZA DELOVNO USPEŠNOST (OSNOVNO)
+    const docsA = [
+        "Odločba: odklop od infrastrukture",
+        "Odločba: odprava in nadomestna",
+        "Odločba: opomin",
+        "Odločba: pisni odpravek ustne odločbe",
+        "Odločba: pisni odpravek ustne odločbe (N)",
+        "Odločba: plačilni nalog",
+        "Odločba: prekrškovna",
+        "Odločba: upravna",
+        "Odločba: upravna (N)",
+        "Sklep: denarna kazen",
+        "Sklep: denarna kazen v upravni izvršbi s PRISILITVIJO",
+        "Sklep: dovolitev izvršbe (po II.osebi)",
+        "Sklep: dovolitev izvršbe (po II.osebi) (N)",
+        "Sklep: dovolitev izvršbe (po II.OSEBI)_G",
+        "Sklep: dovolitev izvršbe (PRISILITEV)",
+        "Sklep: dovolitev izvršbe (PRISILITEV) (N)",
+        "Sklep: dovolitev izvršbe s prisilitvijo-POSEBNE PREPOVEDI",
+        "Sklep: o izvršbi z denarno prisilitvijo (N)",
+        "Sklep: o stroških izvršbe po II. osebi",
+        "Sklep: o založitvi stroškov",
+        "Sklep: ustavitev izvršbe",
+        "Sklep: ustavitev postopka",
+        "Zapisnik: izvršba po I.osebi (legalizacija)"
+    ];
 
-    const docsIP = {
-        "Zapisnik: izredni kontrolni pregled": ["I", "L"],
-        "Zapisnik: izredni kontrolni pregled - izvršba po I.osebi (izvršitev odločbe)": ["I", "L"],
-        "Zapisnik: izredni pregled": ["I", "L"],
-        "Zapisnik: izredni pregled (N)": ["I", "L"],
-        "Zapisnik: izredni pregled z zaslišanjem": ["I", "L"],
-        "Zapisnik: izvršba po II.osebi": ["I", "L"],
-        "Zapisnik: o izvršbi po II.osebi (N)": ["I", "L"],
-        "Zapisnik: redni kontrolni pregled": ["I", "L"],
-        "Zapisnik: redni kontrolni pregled - izvršba po I.osebi (izvršitev odločbe)": ["I", "L"],
-        "Zapisnik: redni pregled": ["I", "L"],
-        "Zapisnik: redni pregled (N)": ["I", "L"],
-        "Zapisnik: redni pregled z zaslišanjem": ["I", "L"]
-    };
+    const docsIP = [
+        "Zapisnik: izredni kontrolni pregled",
+        "Zapisnik: izredni kontrolni pregled - izvršba po I.osebi (izvršitev odločbe)",
+        "Zapisnik: izredni pregled",
+        "Zapisnik: izredni pregled (N)",
+        "Zapisnik: izredni pregled z zaslišanjem",
+        "Zapisnik: izvršba po II.osebi",
+        "Zapisnik: o izvršbi po II.osebi (N)",
+        "Zapisnik: redni kontrolni pregled",
+        "Zapisnik: redni kontrolni pregled - izvršba po I.osebi (izvršitev odločbe)",
+        "Zapisnik: redni pregled",
+        "Zapisnik: redni pregled (N)",
+        "Zapisnik: redni pregled z zaslišanjem"
+    ];
 
-    // NOVI DOKUMENTI (Letna norma)
-    const normaDocsA = {
-        "Odločba: odklop od infrastrukture": ["I"],
-        "Odločba: odprava in nadomestna": ["I"],
-        "Odločba: odprava ODL (prekrškovna)": ["I"],
-        "Odločba: odprava ODL (prekrškovna) in nadomestitev": ["I"],
-        "Odločba: odprava PN in nadomestitev": ["I"],
-        "Odločba: opomin": ["I"],
-        "Odločba: pisni odpravek ustne odločbe": ["I"],
-        "Odločba: plačilni nalog": ["I"],
-        "Odločba: prekrškovna": ["I"],
-        "Odločba: upravna": ["I"],
-        "Sklep: denarna kazen": ["I"],
-        "Sklep: denarna kazen v upravni izvršbi s PRISILITVIJO": ["I"],
-        "Sklep: dovolitev izvršbe (po II.OSEBI)_G": ["I"],
-        "Sklep: dovolitev izvršbe (PRISILITEV)": ["I"],
-        "Sklep: o dovolitvi pravnega posla (107.čl.GZ-1)": ["I"],
-        "Sklep: o stroških izvršbe po II. osebi": ["I"],
-        "Sklep: o založitvi stroškov": ["I"],
-        "Sklep: odlog izvršbe zaradi doma se DOVOLI_(na podlagi odločitve sodišča)": ["I"],
-        "Sklep: odlog izvršbe zaradi doma se DOVOLI_(na podlagi vloge)": ["I"],
-        "Sklep: odlog izvršbe zaradi doma se ZAVRŽE": ["I"],
-        "Sklep: postopek odloga izvršbe zaradi doma se PREKINE": ["I"],
-        "Sklep: postopek odloga izvršbe zaradi doma se USTAVI": ["I"],
-        "Sklep: ustavitev izvršbe": ["I"],
-        "Sklep: ustavitev postopka": ["I"],
-        "Sklep: vloga za odlog izvršbe zaradi doma se ZAVRNE": ["I"],
-        "x(IPS) Odločba o predlogu: NIČNOST-zavrnitev": ["I"],
-        "x(IPS) Odločba o predlogu: OBNOVA-zavrnitev": ["I"],
-        "x(IPS) Odločba: NIČNOST": ["I"],
-        "x(IPS) Odločba: OBNOVA": ["I"],
-        "x(IPS) Odločba: SPREMEMBA / ODPRAVA v vezi z Upr.Spor.": ["I"],
-        "x(IPS) Sklep o predlogu: NIČNOST-zavrženje": ["I"],
-        "x(IPS) Sklep o predlogu: OBNOVA-se ugodi": ["I"],
-        "x(IPS) Sklep o predlogu: OBNOVA-zavrženje": ["I"],
-        "x(IPS) Sklep: NIČNOST-po uradni dolžnosti": ["I"],
-        "x(IPS) Sklep: OBNOVA-po uradni dolžnosti": ["I"],
-        "Zapisnik: izvršba po I.osebi (legalizacija)": ["I", "L"],
-        "Zapisnik: prekrškovni - teren": ["I", "L"],
-        "Zapisnik: zaslišanje": ["I", "L"],
-        "Sklep: odlog izvršbe": ["I"],
-        "Sklep: upravni": ["I"],
-        "Sklep: stroški postopka": ["I"],
-        "Zapisnik: prekrškovni": ["L"]
-    };
+    // DOKUMENTI ZA LETNO NORMO
+    const normaDocsA = [
+        "Odločba: odklop od infrastrukture",
+        "Odločba: odprava in nadomestna",
+        "Odločba: odprava ODL (prekrškovna)",
+        "Odločba: odprava ODL (prekrškovna) in nadomestitev",
+        "Odločba: odprava PN in nadomestitev",
+        "Odločba: opomin",
+        "Odločba: pisni odpravek ustne odločbe",
+        "Odločba: plačilni nalog",
+        "Odločba: prekrškovna",
+        "Odločba: upravna",
+        "Sklep: denarna kazen",
+        "Sklep: denarna kazen v upravni izvršbi s PRISILITVIJO",
+        "Sklep: dovolitev izvršbe (po II.OSEBI)_G",
+        "Sklep: dovolitev izvršbe (PRISILITEV)",
+        "Sklep: o dovolitvi pravnega posla (107.čl.GZ-1)",
+        "Sklep: o stroških izvršbe po II. osebi",
+        "Sklep: o založitvi stroškov",
+        "Sklep: odlog izvršbe zaradi doma se DOVOLI_(na podlagi odločitve sodišča)",
+        "Sklep: odlog izvršbe zaradi doma se DOVOLI_(na podlagi vloge)",
+        "Sklep: odlog izvršbe zaradi doma se ZAVRŽE",
+        "Sklep: postopek odloga izvršbe zaradi doma se PREKINE",
+        "Sklep: postopek odloga izvršbe zaradi doma se USTAVI",
+        "Sklep: ustavitev izvršbe",
+        "Sklep: ustavitev postopka",
+        "Sklep: vloga za odlog izvršbe zaradi doma se ZAVRNE",
+        "x(IPS) Odločba o predlogu: NIČNOST-zavrnitev",
+        "x(IPS) Odločba o predlogu: OBNOVA-zavrnitev",
+        "x(IPS) Odločba: NIČNOST",
+        "x(IPS) Odločba: OBNOVA",
+        "x(IPS) Odločba: SPREMEMBA / ODPRAVA v vezi z Upr.Spor.",
+        "x(IPS) Sklep o predlogu: NIČNOST-zavrženje",
+        "x(IPS) Sklep o predlogu: OBNOVA-se ugodi",
+        "x(IPS) Sklep o predlogu: OBNOVA-zavrženje",
+        "x(IPS) Sklep: NIČNOST-po uradni dolžnosti",
+        "x(IPS) Sklep: OBNOVA-po uradni dolžnosti",
+        "Zapisnik: izvršba po I.osebi (legalizacija)",
+        "Zapisnik: prekrškovni - teren",
+        "Zapisnik: zaslišanje",
+        "Sklep: odlog izvršbe",
+        "Sklep: upravni",
+        "Sklep: stroški postopka",
+        "Zapisnik: prekrškovni"
+    ];
 
-    const normaDocsIP = {
-        "Zapisnik: izredni kontrolni pregled": ["I", "L"],
-        "Zapisnik: izredni kontrolni pregled - izvršba po I.osebi (izvršitev odločbe)": ["I", "L"],
-        "Zapisnik: izredni pregled": ["I", "L"],
-        "Zapisnik: izredni pregled z zaslišanjem": ["I", "L"],
-        "Zapisnik: izvršba po II.osebi": ["I", "L"],
-        "Zapisnik: redni kontrolni pregled": ["I", "L"],
-        "Zapisnik: redni kontrolni pregled - izvršba po I.osebi (izvršitev odločbe)": ["I", "L"],
-        "Zapisnik: redni pregled": ["I", "L"],
-        "Zapisnik: redni pregled z zaslišanjem": ["I", "L"]
-    };
+    const normaDocsIP = [
+        "Zapisnik: izredni kontrolni pregled",
+        "Zapisnik: izredni kontrolni pregled - izvršba po I.osebi (izvršitev odločbe)",
+        "Zapisnik: izredni pregled",
+        "Zapisnik: izredni pregled z zaslišanjem",
+        "Zapisnik: izvršba po II.osebi",
+        "Zapisnik: redni kontrolni pregled",
+        "Zapisnik: redni kontrolni pregled - izvršba po I.osebi (izvršitev odločbe)",
+        "Zapisnik: redni pregled",
+        "Zapisnik: redni pregled z zaslišanjem"
+    ];
 
-    // Spremenljivke za seštevke
-    let sumA = 0;
-    let sumIP = 0;
-    
-    let normaSumA = 0;
-    let normaSumIP = 0;
+    let sumA = 0, sumIP = 0;
+    let normaSumA = 0, normaSumIP = 0;
 
     function clean(str) {
         return (str || "").replace(/\u00a0/g, " ").replace(/\s+/g, " ").trim();
+    }
+
+    // Pomožna funkcija za iskanje ujemanja v seznamu dokumentov
+    function checkDocMatch(docString, list) {
+        // dokumenti imajo na koncu "; opis...", zato pogledamo ali se začne z enim od iskanih ali ga vsebuje
+        return list.some(item => docString.toLowerCase().startsWith(item.toLowerCase()));
     }
 
     function processDoc(doc) {
@@ -116,40 +118,50 @@
 
         rows.forEach(tr => {
             const cells = tr.querySelectorAll('td');
-            if (cells.length < 3) return;
+            // Iščemo vrstice, ki imajo vsaj 6 stolpcev (Smer, Datum, Zadeva, Str. delavec, Vrsta in opis, Knjižil)
+            if (cells.length < 5) return; 
 
+            // Preverimo Smer in Dokument
             const smer = clean(cells[0].textContent).toUpperCase();
-            const docName = clean(cells[1].textContent);
-
-            let countCell = (cells.length === 3) ? cells[cells.length - 1] : cells[cells.length - 2];
-            let countRaw = clean(countCell.textContent);
-            let count = parseInt(countRaw.replace(/\./g, '').replace(/,/g, ''), 10);
-
-            if (isNaN(count)) {
-                for (let i = cells.length - 1; i >= 2; i--) {
-                    let n = parseInt(clean(cells[i].textContent).replace(/\./g, '').replace(/,/g, ''), 10);
-                    if (!isNaN(n)) {
-                        count = n;
-                        break;
-                    }
+            
+            // Če prvi stolpec ni I ali L (ali V - ki ga itak ne rabimo), preskočimo 
+            if (!['I', 'L'].includes(smer)) return;
+            
+            // Dokument je običajno v predzadnjem (ali ustreznem) stolpcu. Zgornji primer: 5. stolpec (indeks 4)
+            // Preverimo vse celice, če slučajno najdemo "; " separator (značilen za vašo vrsto/opis)
+            let docName = "";
+            for (let i = 2; i < cells.length; i++) {
+                let cellText = clean(cells[i].textContent);
+                if (cellText.includes(':') && (cellText.includes('Sklep') || cellText.includes('Odločba') || cellText.includes('Zapisnik'))) {
+                     // Odstrani vse za podpičjem za lažje ujemanje
+                     docName = cellText.split(';')[0].trim(); 
+                     break;
                 }
             }
-            if (isNaN(count)) count = 0;
 
-            // 1. Štetje in barvanje za OSNOVNO statistiko (mesečno)
-            if (docsA[docName] && docsA[docName].includes(smer)) {
-                sumA += count;
-                tr.style.backgroundColor = '#fff3cd'; // Rumena
-            } else if (docsIP[docName] && docsIP[docName].includes(smer)) {
-                sumIP += count;
-                tr.style.backgroundColor = '#d4edda'; // Zelena
+            if (!docName) return; // Nismo našli tipa dokumenta
+
+            // ŠTETJE DELOVNA USPEŠNOST
+            let counted = false;
+            if (smer === 'I' || smer === 'L') {
+                if (checkDocMatch(docName, docsA)) {
+                    sumA++;
+                    tr.style.backgroundColor = '#fff3cd'; // Obarvamo, da vidimo zajeto
+                    counted = true;
+                } else if (checkDocMatch(docName, docsIP)) {
+                    sumIP++;
+                    tr.style.backgroundColor = '#d4edda';
+                    counted = true;
+                }
             }
 
-            // 2. Štetje za LETNO NORMO (v ozadju, brez spreminjanja barv)
-            if (normaDocsA[docName] && normaDocsA[docName].includes(smer)) {
-                normaSumA += count;
-            } else if (normaDocsIP[docName] && normaDocsIP[docName].includes(smer)) {
-                normaSumIP += count;
+            // ŠTETJE LETNA NORMA
+            if (smer === 'I' || smer === 'L') {
+                if (checkDocMatch(docName, normaDocsA)) {
+                    normaSumA++;
+                } else if (checkDocMatch(docName, normaDocsIP)) {
+                    normaSumIP++;
+                }
             }
         });
     }
@@ -165,33 +177,24 @@
 
     processWindow(window);
 
-    // Izračun obstoječega faktorja
+    // Izračuni (ostane popolnoma enako kot prej)
     const tocke = (sumIP / 16) + (sumA / 4);
     let faktor = "0%";
-    if (tocke >= 3) {
-        faktor = "4%";
-    } else if (tocke >= 2.5) {
-        faktor = "3%";
-    } else if (tocke >= 2) {
-        faktor = "2%";
-    } else if (tocke >= 1.5) {
-        faktor = "1%";
-    }
+    if (tocke >= 3) faktor = "4%";
+    else if (tocke >= 2.5) faktor = "3%";
+    else if (tocke >= 2) faktor = "2%";
+    else if (tocke >= 1.5) faktor = "1%";
 
-// Izračun skupnih vrednosti in odstotkov za DELOVNO USPEŠNOST
     let skupnoDelovno = sumA + sumIP;
     let odstotekDelovnoA = skupnoDelovno > 0 ? ((sumA / skupnoDelovno) * 100).toFixed(1) : "0";
     let odstotekDelovnoIP = skupnoDelovno > 0 ? ((sumIP / skupnoDelovno) * 100).toFixed(1) : "0";
 
-    // Cilji za LETNO NORMO
     const ciljNormaA = 54;
     const ciljNormaIP = 119;
     
-    // Izračun doseženih odstotkov glede na celoletno normo
     let dosezenoNormaA_num = ((normaSumA / ciljNormaA) * 100);
     let dosezenoNormaIP_num = ((normaSumIP / ciljNormaIP) * 100);
     
-    // --- NOVA STATISTIKA: ČASOVNI PRESEK (Kje si danes) ---
     const zdaj = new Date();
     const zacetekLeta = new Date(zdaj.getFullYear(), 0, 1);
     const konecLeta = new Date(zdaj.getFullYear(), 11, 31);
@@ -215,12 +218,10 @@
         return `<span style="background:#fee2e2; color:#991b1b; padding:2px 8px; border-radius:12px; font-weight:600; font-size:12px;">${razlika}</span>`;
     };
 
-    // --- USTVARJANJE MODERNEGA UI/UX POPUP-A ---
-    // Odstranimo prejšnje okno, če že obstaja (da se ne podvajajo)
+    // UIX OBLIKOVANJE
     const obstojeciModal = document.getElementById("moj-top-stat-modal");
     if (obstojeciModal) obstojeciModal.remove();
 
-    // Sestavimo HTML
     const overlay = document.createElement("div");
     overlay.id = "moj-top-stat-modal";
     overlay.style.cssText = "position:fixed; top:0; left:0; width:100vw; height:100vh; background:rgba(15, 23, 42, 0.6); backdrop-filter:blur(4px); z-index:999999; display:flex; align-items:center; justify-content:center; font-family:system-ui, -apple-system, sans-serif; overflow:hidden; margin:0; padding:0;";
@@ -228,16 +229,13 @@
     const modalHTML = `
         <div style="background:#ffffff; width:650px; border-radius:16px; box-shadow:0 25px 50px -12px rgba(0,0,0,0.25); overflow:hidden; display:flex; flex-direction:column;">
             
-            <!-- Glava -->
             <div style="background:#f8fafc; padding:20px 24px; border-bottom:1px solid #e2e8f0; display:flex; justify-content:space-between; align-items:center;">
                 <h2 style="margin:0; font-size:18px; color:#0f172a; font-weight:700; letter-spacing:-0.5px;">Statistika Realizacije</h2>
                 <button id="zapri-stat-btn" style="background:none; border:none; font-size:24px; color:#64748b; cursor:pointer; line-height:1;">&times;</button>
             </div>
 
-            <!-- Vsebina -->
             <div style="padding:24px; display:flex; flex-direction:column; gap:24px;">
                 
-                <!-- Delovna Uspešnost -->
                 <div>
                     <h3 style="margin:0 0 12px 0; font-size:13px; text-transform:uppercase; color:#64748b; font-weight:700; letter-spacing:0.5px;">Delovna uspešnost</h3>
                     <div style="display:flex; gap:16px;">
@@ -256,7 +254,6 @@
                     </div>
                 </div>
 
-                <!-- Letna Norma -->
                 <div>
                     <div style="display:flex; justify-content:space-between; align-items:flex-end; margin-bottom:12px;">
                         <h3 style="margin:0; font-size:13px; text-transform:uppercase; color:#64748b; font-weight:700; letter-spacing:0.5px;">Letna norma</h3>
@@ -265,7 +262,6 @@
                     
                     <div style="display:flex; flex-direction:column; gap:16px; background:#ffffff; border:1px solid #e2e8f0; padding:16px; border-radius:12px;">
                         
-                        <!-- Akti Progress -->
                         <div>
                             <div style="display:flex; justify-content:space-between; font-size:13px; margin-bottom:6px; font-weight:600; color:#334155;">
                                 <span>Akti: ${normaSumA} / ${ciljNormaA} <span style="color:#64748b; font-weight:400;">(${dosezenoNormaA_num.toFixed(1)}%)</span></span>
@@ -276,7 +272,6 @@
                             </div>
                         </div>
 
-                        <!-- Pregledi Progress -->
                         <div>
                             <div style="display:flex; justify-content:space-between; font-size:13px; margin-bottom:6px; font-weight:600; color:#334155;">
                                 <span>Pregledi: ${normaSumIP} / ${ciljNormaIP} <span style="color:#64748b; font-weight:400;">(${dosezenoNormaIP_num.toFixed(1)}%)</span></span>
@@ -296,7 +291,6 @@
     overlay.innerHTML = modalHTML;
     document.body.appendChild(overlay);
 
-    // Gumb za zapiranje in zapiranje s klikom na ozadje
     document.getElementById("zapri-stat-btn").addEventListener("click", () => overlay.remove());
     overlay.addEventListener("click", (e) => {
         if(e.target === overlay) overlay.remove();
