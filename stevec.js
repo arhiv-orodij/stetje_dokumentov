@@ -1,5 +1,5 @@
 (function(){
-    // DOKUMENTI ZA DELOVNO USPEŠNOST (OSNOVNO)
+    // DOKUMENTI ZA DELOVNO USPEŠNOST (Mesečno / Faktor)
     const docsA = [
         "Odločba: odklop od infrastrukture",
         "Odločba: odprava in nadomestna",
@@ -101,69 +101,70 @@
 
     let sumA = 0, sumIP = 0;
     let normaSumA = 0, normaSumIP = 0;
+    
+    // Ključno: Shranimo referenco na tisti okvir (frame), kjer najdemo podatke!
+    let targetDocument = document; 
 
     function clean(str) {
         return (str || "").replace(/\u00a0/g, " ").replace(/\s+/g, " ").trim();
     }
 
-    // Pomožna funkcija za iskanje ujemanja v seznamu dokumentov
     function checkDocMatch(docString, list) {
-        // dokumenti imajo na koncu "; opis...", zato pogledamo ali se začne z enim od iskanih ali ga vsebuje
         return list.some(item => docString.toLowerCase().startsWith(item.toLowerCase()));
     }
 
     function processDoc(doc) {
         if (!doc) return;
         const rows = doc.querySelectorAll('tr');
+        let foundDataInThisDoc = false;
 
         rows.forEach(tr => {
             const cells = tr.querySelectorAll('td');
-            // Iščemo vrstice, ki imajo vsaj 6 stolpcev (Smer, Datum, Zadeva, Str. delavec, Vrsta in opis, Knjižil)
             if (cells.length < 5) return; 
 
-            // Preverimo Smer in Dokument
             const smer = clean(cells[0].textContent).toUpperCase();
-            
-            // Če prvi stolpec ni I ali L (ali V - ki ga itak ne rabimo), preskočimo 
             if (!['I', 'L'].includes(smer)) return;
             
-            // Dokument je običajno v predzadnjem (ali ustreznem) stolpcu. Zgornji primer: 5. stolpec (indeks 4)
-            // Preverimo vse celice, če slučajno najdemo "; " separator (značilen za vašo vrsto/opis)
             let docName = "";
             for (let i = 2; i < cells.length; i++) {
                 let cellText = clean(cells[i].textContent);
                 if (cellText.includes(':') && (cellText.includes('Sklep') || cellText.includes('Odločba') || cellText.includes('Zapisnik'))) {
-                     // Odstrani vse za podpičjem za lažje ujemanje
                      docName = cellText.split(';')[0].trim(); 
                      break;
                 }
             }
 
-            if (!docName) return; // Nismo našli tipa dokumenta
+            if (!docName) return;
 
-            // ŠTETJE DELOVNA USPEŠNOST
             let counted = false;
-            if (smer === 'I' || smer === 'L') {
-                if (checkDocMatch(docName, docsA)) {
-                    sumA++;
-                    tr.style.backgroundColor = '#fff3cd'; // Obarvamo, da vidimo zajeto
-                    counted = true;
-                } else if (checkDocMatch(docName, docsIP)) {
-                    sumIP++;
-                    tr.style.backgroundColor = '#d4edda';
-                    counted = true;
-                }
+            
+            // Štetje: DELOVNA USPEŠNOST
+            if (checkDocMatch(docName, docsA)) {
+                sumA++;
+                tr.style.backgroundColor = '#fff3cd'; // Rumena
+                counted = true;
+            } else if (checkDocMatch(docName, docsIP)) {
+                sumIP++;
+                tr.style.backgroundColor = '#d4edda'; // Zelena
+                counted = true;
             }
 
-            // ŠTETJE LETNA NORMA
-            if (smer === 'I' || smer === 'L') {
-                if (checkDocMatch(docName, normaDocsA)) {
-                    normaSumA++;
-                } else if (checkDocMatch(docName, normaDocsIP)) {
-                    normaSumIP++;
-                }
+            // Štetje: LETNA NORMA
+            if (checkDocMatch(docName, normaDocsA)) {
+                normaSumA++;
+                counted = true;
+            } else if (checkDocMatch(docName, normaDocsIP)) {
+                normaSumIP++;
+                counted = true;
             }
+            
+            if (counted) foundDataInThisDoc = true;
         });
+        
+        // Če smo v tem oknu našli podatke, si ga zapomnimo za prikaz UI modal-a
+        if (foundDataInThisDoc && doc.body) {
+            targetDocument = doc;
+        }
     }
 
     function processWindow(win) {
@@ -177,7 +178,7 @@
 
     processWindow(window);
 
-    // Izračuni (ostane popolnoma enako kot prej)
+    // --- MATEMATIKA IN IZRAČUNI ---
     const tocke = (sumIP / 16) + (sumA / 4);
     let faktor = "0%";
     if (tocke >= 3) faktor = "4%";
@@ -218,36 +219,36 @@
         return `<span style="background:#fee2e2; color:#991b1b; padding:2px 8px; border-radius:12px; font-weight:600; font-size:12px;">${razlika}</span>`;
     };
 
-    // UIX OBLIKOVANJE
-    const obstojeciModal = document.getElementById("moj-top-stat-modal");
-    if (obstojeciModal) obstojeciModal.remove();
+    // --- KREIRANJE UI OKNA ---
+    const stariModal = targetDocument.getElementById("moj-top-stat-modal");
+    if (stariModal) stariModal.remove();
 
-    const overlay = document.createElement("div");
+    const overlay = targetDocument.createElement("div");
     overlay.id = "moj-top-stat-modal";
-    overlay.style.cssText = "position:fixed; top:0; left:0; width:100vw; height:100vh; background:rgba(15, 23, 42, 0.6); backdrop-filter:blur(4px); z-index:999999; display:flex; align-items:center; justify-content:center; font-family:system-ui, -apple-system, sans-serif; overflow:hidden; margin:0; padding:0;";
+    overlay.style.cssText = "position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(15, 23, 42, 0.6); z-index:999999; display:flex; align-items:center; justify-content:center; font-family:system-ui, -apple-system, sans-serif; overflow:auto; margin:0; padding:20px; box-sizing:border-box;";
 
     const modalHTML = `
-        <div style="background:#ffffff; width:650px; border-radius:16px; box-shadow:0 25px 50px -12px rgba(0,0,0,0.25); overflow:hidden; display:flex; flex-direction:column;">
+        <div style="background:#ffffff; width:100%; max-width:650px; border-radius:16px; box-shadow:0 25px 50px -12px rgba(0,0,0,0.5); overflow:hidden; display:flex; flex-direction:column; position:relative; margin:auto;">
             
             <div style="background:#f8fafc; padding:20px 24px; border-bottom:1px solid #e2e8f0; display:flex; justify-content:space-between; align-items:center;">
                 <h2 style="margin:0; font-size:18px; color:#0f172a; font-weight:700; letter-spacing:-0.5px;">Statistika Realizacije</h2>
-                <button id="zapri-stat-btn" style="background:none; border:none; font-size:24px; color:#64748b; cursor:pointer; line-height:1;">&times;</button>
+                <button id="zapri-stat-btn" style="background:none; border:none; font-size:28px; color:#64748b; cursor:pointer; line-height:1; padding:0 5px;">&times;</button>
             </div>
 
             <div style="padding:24px; display:flex; flex-direction:column; gap:24px;">
                 
                 <div>
                     <h3 style="margin:0 0 12px 0; font-size:13px; text-transform:uppercase; color:#64748b; font-weight:700; letter-spacing:0.5px;">Delovna uspešnost</h3>
-                    <div style="display:flex; gap:16px;">
-                        <div style="flex:1; background:#fffbea; border:1px solid #fef08a; padding:16px; border-radius:12px;">
+                    <div style="display:flex; gap:16px; flex-wrap:wrap;">
+                        <div style="flex:1; min-width:120px; background:#fffbea; border:1px solid #fef08a; padding:16px; border-radius:12px;">
                             <div style="font-size:12px; color:#a16207; font-weight:600; margin-bottom:4px;">AKTI (A)</div>
                             <div style="font-size:24px; font-weight:800; color:#854d0e;">${sumA} <span style="font-size:14px; font-weight:500; color:#ca8a04;">(${odstotekDelovnoA}%)</span></div>
                         </div>
-                        <div style="flex:1; background:#f0fdf4; border:1px solid #bbf7d0; padding:16px; border-radius:12px;">
+                        <div style="flex:1; min-width:120px; background:#f0fdf4; border:1px solid #bbf7d0; padding:16px; border-radius:12px;">
                             <div style="font-size:12px; color:#166534; font-weight:600; margin-bottom:4px;">PREGLEDI (IP)</div>
                             <div style="font-size:24px; font-weight:800; color:#15803d;">${sumIP} <span style="font-size:14px; font-weight:500; color:#22c55e;">(${odstotekDelovnoIP}%)</span></div>
                         </div>
-                        <div style="flex:1; background:#f8fafc; border:1px solid #e2e8f0; padding:16px; border-radius:12px; text-align:center;">
+                        <div style="flex:1; min-width:150px; background:#f8fafc; border:1px solid #e2e8f0; padding:16px; border-radius:12px; text-align:center;">
                             <div style="font-size:12px; color:#475569; font-weight:600; margin-bottom:4px;">TOČKE / FAKTOR</div>
                             <div style="font-size:24px; font-weight:800; color:#0f172a;">${tocke.toFixed(2)} <span style="color:#0ea5e9;">/ ${faktor}</span></div>
                         </div>
@@ -257,7 +258,7 @@
                 <div>
                     <div style="display:flex; justify-content:space-between; align-items:flex-end; margin-bottom:12px;">
                         <h3 style="margin:0; font-size:13px; text-transform:uppercase; color:#64748b; font-weight:700; letter-spacing:0.5px;">Letna norma</h3>
-                        <div style="font-size:12px; color:#64748b;">Mimo je <b>${odstotekLeta_num.toFixed(1)}%</b> leta (${preostaliDni} dni do konca)</div>
+                        <div style="font-size:12px; color:#64748b;">Mimo je <b>${odstotekLeta_num.toFixed(1)}%</b> leta (${preostaliDni} dni)</div>
                     </div>
                     
                     <div style="display:flex; flex-direction:column; gap:16px; background:#ffffff; border:1px solid #e2e8f0; padding:16px; border-radius:12px;">
@@ -289,10 +290,34 @@
     `;
 
     overlay.innerHTML = modalHTML;
-    document.body.appendChild(overlay);
+    
+    // Varovalka - če sistem kljub vsemu blokira prikaz okna
+    let uiPrikazan = false;
+    try {
+        targetDocument.body.appendChild(overlay);
+        uiPrikazan = true;
+        
+        targetDocument.getElementById("zapri-stat-btn").addEventListener("click", () => overlay.remove());
+        overlay.addEventListener("click", (e) => {
+            if(e.target === overlay) overlay.remove();
+        });
+    } catch(err) {
+        console.error("Ne morem dodati okna v body", err);
+    }
 
-    document.getElementById("zapri-stat-btn").addEventListener("click", () => overlay.remove());
-    overlay.addEventListener("click", (e) => {
-        if(e.target === overlay) overlay.remove();
-    });
+    // Varnostni rezervni plan: Če se fancy okno po 0.5s ni uspelo dodati, sprožimo navadni stari alert
+    setTimeout(() => {
+        if (!uiPrikazan || !targetDocument.getElementById("moj-top-stat-modal")) {
+            alert(
+                "--- DELOVNA USPEŠNOST ---\n" +
+                "Akti (A): " + sumA + "\nPregledi (IP): " + sumIP + "\n" +
+                "Faktor: " + faktor + "\n\n" +
+                "--- LETNA NORMA ---\n" +
+                "Akti (A): " + normaSumA + " / " + ciljNormaA + "\n" +
+                "Pregledi (IP): " + normaSumIP + " / " + ciljNormaIP + "\n\n" +
+                "(Opomba: Sistem preprečuje grafični prikaz, zato je prikazano kot tekst.)"
+            );
+        }
+    }, 500);
+
 })();
