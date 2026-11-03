@@ -105,9 +105,34 @@
 
     let targetDocument = document; 
     let podatkiNajdeni = false; // VAROVALKA: Ali smo sploh našli kakšen podatek?
-    
-    // Določitev trenutnega obračunskega obdobja
-    const zdaj = new Date();
+
+    // Določitev trenutnega obračunskega obdobja na podlagi najnovejšega datuma v poročilu
+    let zdaj = new Date(); 
+    let maxTime = 0;
+    const dateRegex = /(\d{1,2})\.\s*(\d{1,2})\.\s*(\d{4})/; // DODANO: \s* omogoča presledke
+
+    function findLatestDate(win) {
+        try {
+            const text = win.document.body.innerText;
+            const matches = text.matchAll(/(\d{1,2})\.\s*(\d{1,2})\.\s*(\d{4})/g);
+            for (const match of matches) {
+                let d = parseInt(match[1], 10);
+                let m = parseInt(match[2], 10);
+                let y = parseInt(match[3], 10);
+                if (m >= 1 && m <= 12) {
+                    let t = new Date(y, m - 1, d).getTime();
+                    // Nastavimo na najnovejši datum, a ne v prihodnosti
+                    if (t > maxTime && t <= Date.now()) { 
+                        maxTime = t;
+                        zdaj = new Date(y, m - 1, d);
+                    }
+                }
+            }
+            for (let i = 0; i < win.frames.length; i++) findLatestDate(win.frames[i]);
+        } catch(e) {}
+    }
+    findLatestDate(window);
+
     const trenutniMesec = zdaj.getMonth() + 1;
     const trenutnoLeto = zdaj.getFullYear();
 
@@ -142,8 +167,7 @@
         const rows = doc.querySelectorAll('tr');
         let foundDataInThisDoc = false;
 
-        const dateRegex = /(\d{1,2})\.(\d{1,2})\.(\d{4})/;
-
+        const dateRegex = /(\d{1,2})\.\s*(\d{1,2})\.\s*(\d{4})/;
         rows.forEach(tr => {
             const cells = tr.querySelectorAll('td');
             if (cells.length < 5) return; 
