@@ -91,7 +91,7 @@
         "Zapisnik: prekrškovni" 
     ];
 
-// --- 3. SPREMENLJIVKE ZA ZAJEM PODATKOV ---
+    // --- 3. SPREMENLJIVKE ZA ZAJEM PODATKOV ---
     let stats = {
         delovna: { totalA: 0, totalIP: 0, currentA: 0, currentIP: 0, months: {} },
         norma: { totalA: 0, totalIP: 0, months: {} }
@@ -104,30 +104,36 @@
     }
 
     let targetDocument = document; 
+    let podatkiNajdeni = false; // VAROVALKA: Ali smo sploh našli kakšen podatek?
     
-// Določitev trenutnega obračunskega obdobja (od 30. prejšnjega do 29. tekočega)
+    // Določitev trenutnega obračunskega obdobja
     const zdaj = new Date();
     const trenutniMesec = zdaj.getMonth() + 1;
     const trenutnoLeto = zdaj.getFullYear();
 
-    // Pametna funkcija, ki vrne točno število dni v določenem mesecu in letu
     function getDaysInMonth(month, year) {
         return new Date(year, month, 0).getDate();
     }
 
-function isCurrentPeriod(d, m, y) {
+    function isCurrentPeriod(d, m, y) {
         let prejsnjiMesec = trenutniMesec === 1 ? 12 : trenutniMesec - 1;
         let letoPrejsnjega = trenutniMesec === 1 ? trenutnoLeto - 1 : trenutnoLeto;
 
-        // Začetni dan je 30., razen če mesec nima toliko dni (npr. februar) - v tem primeru vzamemo zadnji dan meseca
         let zacetniDan = Math.min(30, getDaysInMonth(prejsnjiMesec, letoPrejsnjega));
 
-        // Obdobje prejšnjega meseca (od 30. oz. zadnjega obstoječega dneva dalje)
         if (y === letoPrejsnjega && m === prejsnjiMesec && d >= zacetniDan) return true;
-        // Obdobje tekočega meseca (do vključno 29.)
         if (y === trenutnoLeto && m === trenutniMesec && d <= 29) return true; 
         
         return false;
+    }
+
+    function clean(str) {
+        return (str || "").replace(/\u00a0/g, " ").replace(/\s+/g, " ").trim();
+    }
+
+    function checkDocMatch(docString, list) {
+        let searchDoc = docString.toLowerCase();
+        return list.some(item => searchDoc.startsWith(item.toLowerCase()));
     }
 
     // --- 4. ANALIZA TABEL IN ZAJEM ---
@@ -145,7 +151,6 @@ function isCurrentPeriod(d, m, y) {
             const smer = clean(cells[0].textContent).toUpperCase();
             if (!['I', 'L'].includes(smer)) return;
             
-            // Izlušči datum, mesec in leto
             let dateText = clean(cells[1].textContent);
             let match = dateText.match(dateRegex);
             let day = match ? parseInt(match[1], 10) : null;
@@ -153,7 +158,6 @@ function isCurrentPeriod(d, m, y) {
             let year = match ? parseInt(match[3], 10) : null;
             if(!month || month < 1 || month > 12) month = 1; 
 
-            // Izlušči vrsto dokumenta
             let docName = "";
             for (let i = 2; i < cells.length; i++) {
                 let cellText = clean(cells[i].textContent);
@@ -172,14 +176,14 @@ function isCurrentPeriod(d, m, y) {
                 stats.delovna.months[month].a++;
                 if (day && month && year && isCurrentPeriod(day, month, year)) stats.delovna.currentA++;
                 
-                tr.style.backgroundColor = '#fff3cd'; // Obarvamo A 
+                tr.style.backgroundColor = '#fff3cd'; 
                 counted = true;
             } else if (checkDocMatch(docName, docsIP)) {
                 stats.delovna.totalIP++;
                 stats.delovna.months[month].ip++;
                 if (day && month && year && isCurrentPeriod(day, month, year)) stats.delovna.currentIP++;
                 
-                tr.style.backgroundColor = '#d4edda'; // Obarvamo IP 
+                tr.style.backgroundColor = '#d4edda'; 
                 counted = true;
             }
 
@@ -194,7 +198,10 @@ function isCurrentPeriod(d, m, y) {
                 counted = true;
             }
             
-            if (counted) foundDataInThisDoc = true;
+            if (counted) {
+                foundDataInThisDoc = true;
+                podatkiNajdeni = true;
+            }
         });
         
         if (foundDataInThisDoc && doc.body) {
@@ -213,18 +220,23 @@ function isCurrentPeriod(d, m, y) {
 
     processWindow(window);
 
+    // --- ZAVRNITEV, ČE NI PODATKOV ---
+    if (!podatkiNajdeni) {
+        alert("Ni ustreznih podatkov.\n\nProsimo, odprite stran:\nPoročila -> Tekoče delo -> Realizacija dela\nin izberite pravi datum.");
+        return; // Prekine izvajanje kode
+    }
+
     // --- 5. LOGIKA ZA UI IN IZRAČUNE ---
     function renderUI(isHalfNorm) {
         let container = targetDocument.getElementById('moj-top-stat-vsebina');
         if (!container) return;
 
-        // MEJE ZA FAKTOR
         const meja4 = isHalfNorm ? 1.5 : 3;
         const meja3 = isHalfNorm ? 1.25 : 2.5;
         const meja2 = isHalfNorm ? 1 : 2;
         const meja1 = isHalfNorm ? 0.75 : 1.5;
 
-        // Izračuni za Delovno Uspešnost (KARTICE - SAMO TEKOČI MESEC)
+        // Izračuni za Delovno Uspešnost
         const sumA_top = stats.delovna.currentA;
         const sumIP_top = stats.delovna.currentIP;
         const tocke_top = (sumIP_top / 16) + (sumA_top / 4);
@@ -242,17 +254,11 @@ function isCurrentPeriod(d, m, y) {
         // Izračuni za Letno Normo
         const ciljNormaA = isHalfNorm ? 27 : 54;
         const ciljNormaIP = isHalfNorm ? 59.5 : 119;
-        const ciljSkupaj = ciljNormaA + ciljNormaIP;
         
         let dosezenoNormaA_num = ((stats.norma.totalA / ciljNormaA) * 100);
         let dosezenoNormaIP_num = ((stats.norma.totalIP / ciljNormaIP) * 100);
         let prikazDosezenoNormaA = dosezenoNormaA_num.toFixed(1) + "%";
         let prikazDosezenoNormaIP = dosezenoNormaIP_num.toFixed(1) + "%";
-        
-        let skupnoNorma = stats.norma.totalA + stats.norma.totalIP;
-        let odstotekNormaA = skupnoNorma > 0 ? ((stats.norma.totalA / skupnoNorma) * 100).toFixed(1) : "0";
-        let odstotekNormaIP = skupnoNorma > 0 ? ((stats.norma.totalIP / skupnoNorma) * 100).toFixed(1) : "0";
-        let skupnaRealizacijaLeta = ((skupnoNorma / ciljSkupaj) * 100).toFixed(1);
         
         const msVDnevu = 1000 * 60 * 60 * 24;
         const zacetekLeta = new Date(zdaj.getFullYear(), 0, 1);
@@ -276,7 +282,6 @@ function isCurrentPeriod(d, m, y) {
             return `<span style="background:#fee2e2; color:#991b1b; padding:3px 10px; border-radius:12px; font-weight:700; font-size:14px; margin-left:8px;">${razlika}</span>`;
         };
 
-        // Generiranje mesečnih vrstic (HTML) za Delovno uspešnost (VSI MESECI)
         let htmlDelovnaMeseci = `<div style="display:grid; grid-template-columns: 85px repeat(12, 1fr); gap:4px; text-align:center; font-size:13px; margin-top:16px;">`;
         htmlDelovnaMeseci += `<div style="font-weight:700; color:#64748b; text-align:left;">MESEC</div>`;
         for(let i=1; i<=12; i++) htmlDelovnaMeseci += `<div style="font-weight:800; color:#64748b;">${i}</div>`;
@@ -310,7 +315,6 @@ function isCurrentPeriod(d, m, y) {
         }
         htmlDelovnaMeseci += `</div>`;
 
-        // Generiranje mesečnih vrstic (HTML) za Letno normo
         let htmlNormaMeseci = `<div style="display:grid; grid-template-columns: 85px repeat(12, 1fr); gap:4px; text-align:center; font-size:13px; margin-bottom:20px;">`;
         htmlNormaMeseci += `<div style="font-weight:700; color:#64748b; text-align:left;">MESEC</div>`;
         for(let i=1; i<=12; i++) htmlNormaMeseci += `<div style="font-weight:800; color:#64748b;">${i}</div>`;
@@ -322,7 +326,6 @@ function isCurrentPeriod(d, m, y) {
         for(let i=1; i<=12; i++) htmlNormaMeseci += `<div style="background:#d1fae5; border-radius:4px; padding:3px 0;">${stats.norma.months[i].ip || '-'}</div>`;
         htmlNormaMeseci += `</div>`;
 
-        // Združevanje vsega v container
         container.innerHTML = `
             <!-- DELOVNA USPEŠNOST SEKCIJA -->
             <div style="margin-bottom: 32px;">
@@ -374,7 +377,6 @@ function isCurrentPeriod(d, m, y) {
                     ${htmlNormaMeseci}
 
                     <div style="display:flex; flex-direction:column; gap:20px;">
-                        <!-- Akti Progress -->
                         <div>
                             <div style="display:flex; justify-content:space-between; font-size:15px; margin-bottom:8px; font-weight:700; color:#334155;">
                                 <span>Akti: ${stats.norma.totalA} / ${ciljNormaA} <span style="color:#64748b; font-weight:500;">(${dosezenoNormaA_num.toFixed(1)}%)</span></span>
@@ -385,7 +387,6 @@ function isCurrentPeriod(d, m, y) {
                             </div>
                         </div>
 
-                        <!-- Pregledi Progress -->
                         <div>
                             <div style="display:flex; justify-content:space-between; font-size:15px; margin-bottom:8px; font-weight:700; color:#334155;">
                                 <span>Pregledi: ${stats.norma.totalIP} / ${ciljNormaIP} <span style="color:#64748b; font-weight:500;">(${dosezenoNormaIP_num.toFixed(1)}%)</span></span>
@@ -412,7 +413,6 @@ function isCurrentPeriod(d, m, y) {
     const modalHTML = `
         <div style="background:#ffffff; width:100%; max-width:700px; border-radius:16px; box-shadow:0 25px 50px -12px rgba(0,0,0,0.5); display:flex; flex-direction:column; position:relative; margin:auto;">
             
-            <!-- GLAVA -->
             <div style="background:#f8fafc; padding:16px 24px; border-bottom:1px solid #e2e8f0; display:flex; justify-content:space-between; align-items:center; border-radius: 16px 16px 0 0;">
                 <h2 style="margin:0; font-size:18px; color:#0f172a; font-weight:700; letter-spacing:-0.5px;">Statistika Realizacije</h2>
                 
@@ -425,7 +425,6 @@ function isCurrentPeriod(d, m, y) {
                 </div>
             </div>
 
-            <!-- VSEBINA (se polni dinamično) -->
             <div id="moj-top-stat-vsebina" style="padding:24px; display:flex; flex-direction:column;"></div>
             
         </div>
@@ -435,17 +434,13 @@ function isCurrentPeriod(d, m, y) {
     
     try {
         targetDocument.body.appendChild(overlay);
-        
-        // Začetni render (polna norma)
         renderUI(false);
         
-        // Dogodek za kljukico "Polovične norme"
         const checkbox = targetDocument.getElementById("polovicna-norma-checkbox");
         checkbox.addEventListener('change', function() {
             renderUI(this.checked);
         });
 
-        // Dogodki za zapiranje okna
         targetDocument.getElementById("zapri-stat-btn").addEventListener("click", () => overlay.remove());
         overlay.addEventListener("click", (e) => {
             if(e.target === overlay) overlay.remove();
