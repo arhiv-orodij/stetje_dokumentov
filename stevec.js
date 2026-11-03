@@ -91,7 +91,7 @@
         "Zapisnik: prekrškovni" 
     ];
 
-    // --- 3. SPREMENLJIVKE ZA ZAJEM PODATKOV ---
+// --- 3. SPREMENLJIVKE ZA ZAJEM PODATKOV ---
     let stats = {
         delovna: { totalA: 0, totalIP: 0, currentA: 0, currentIP: 0, months: {} },
         norma: { totalA: 0, totalIP: 0, months: {} }
@@ -104,53 +104,8 @@
     }
 
     let targetDocument = document; 
-    let podatkiNajdeni = false; // VAROVALKA: Ali smo sploh našli kakšen podatek?
-
-    // Določitev trenutnega obračunskega obdobja na podlagi najnovejšega datuma v poročilu
-    let zdaj = new Date(); 
-    let maxTime = 0;
-    const dateRegex = /(\d{1,2})\.\s*(\d{1,2})\.\s*(\d{4})/; // DODANO: \s* omogoča presledke
-
-    function findLatestDate(win) {
-        try {
-            const text = win.document.body.innerText;
-            const matches = text.matchAll(/(\d{1,2})\.\s*(\d{1,2})\.\s*(\d{4})/g);
-            for (const match of matches) {
-                let d = parseInt(match[1], 10);
-                let m = parseInt(match[2], 10);
-                let y = parseInt(match[3], 10);
-                if (m >= 1 && m <= 12) {
-                    let t = new Date(y, m - 1, d).getTime();
-                    // Nastavimo na najnovejši datum, a ne v prihodnosti
-                    if (t > maxTime && t <= Date.now()) { 
-                        maxTime = t;
-                        zdaj = new Date(y, m - 1, d);
-                    }
-                }
-            }
-            for (let i = 0; i < win.frames.length; i++) findLatestDate(win.frames[i]);
-        } catch(e) {}
-    }
-    findLatestDate(window);
-
-    const trenutniMesec = zdaj.getMonth() + 1;
-    const trenutnoLeto = zdaj.getFullYear();
-
-    function getDaysInMonth(month, year) {
-        return new Date(year, month, 0).getDate();
-    }
-
-    function isCurrentPeriod(d, m, y) {
-        let prejsnjiMesec = trenutniMesec === 1 ? 12 : trenutniMesec - 1;
-        let letoPrejsnjega = trenutniMesec === 1 ? trenutnoLeto - 1 : trenutnoLeto;
-
-        let zacetniDan = Math.min(30, getDaysInMonth(prejsnjiMesec, letoPrejsnjega));
-
-        if (y === letoPrejsnjega && m === prejsnjiMesec && d >= zacetniDan) return true;
-        if (y === trenutnoLeto && m === trenutniMesec && d <= 29) return true; 
-        
-        return false;
-    }
+    let validRows = []; // Vmesni rezervoar za najdene dokumente
+    const dateRegex = /(\d{1,2})\.\s*(\d{1,2})\.\s*(\d{4})/; // Podpira datume s presledki
 
     function clean(str) {
         return (str || "").replace(/\u00a0/g, " ").replace(/\s+/g, " ").trim();
@@ -161,13 +116,11 @@
         return list.some(item => searchDoc.startsWith(item.toLowerCase()));
     }
 
-    // --- 4. ANALIZA TABEL IN ZAJEM ---
-    function processDoc(doc) {
+    // --- 4. ZBIRANJE IN ANALIZA TABEL ---
+    function collectRows(doc) {
         if (!doc) return;
         const rows = doc.querySelectorAll('tr');
-        let foundDataInThisDoc = false;
 
-        const dateRegex = /(\d{1,2})\.\s*(\d{1,2})\.\s*(\d{4})/;
         rows.forEach(tr => {
             const cells = tr.querySelectorAll('td');
             if (cells.length < 5) return; 
@@ -191,51 +144,20 @@
                 }
             }
 
-            if (!docName) return;
-            let counted = false;
-            
-            // Štetje: DELOVNA USPEŠNOST
-            if (checkDocMatch(docName, docsA)) {
-                stats.delovna.totalA++;
-                stats.delovna.months[month].a++;
-                if (day && month && year && isCurrentPeriod(day, month, year)) stats.delovna.currentA++;
-                
-                tr.style.backgroundColor = '#fff3cd'; 
-                counted = true;
-            } else if (checkDocMatch(docName, docsIP)) {
-                stats.delovna.totalIP++;
-                stats.delovna.months[month].ip++;
-                if (day && month && year && isCurrentPeriod(day, month, year)) stats.delovna.currentIP++;
-                
-                tr.style.backgroundColor = '#d4edda'; 
-                counted = true;
-            }
-
-            // Štetje: LETNA NORMA
-            if (checkDocMatch(docName, normaDocsA)) {
-                stats.norma.totalA++;
-                stats.norma.months[month].a++;
-                counted = true;
-            } else if (checkDocMatch(docName, normaDocsIP)) {
-                stats.norma.totalIP++;
-                stats.norma.months[month].ip++;
-                counted = true;
-            }
-            
-            if (counted) {
-                foundDataInThisDoc = true;
-                podatkiNajdeni = true;
+            // Če vrstica ustreza, jo shranimo za kasnejšo obdelavo
+            if (docName && day && month && year) {
+                validRows.push({ tr, day, month, year, docName });
             }
         });
         
-        if (foundDataInThisDoc && doc.body) {
+        if (validRows.length > 0 && doc.body) {
             targetDocument = doc;
         }
     }
 
     function processWindow(win) {
         try {
-            processDoc(win.document);
+            collectRows(win.document);
             for (let i = 0; i < win.frames.length; i++) {
                 processWindow(win.frames[i]);
             }
@@ -244,11 +166,72 @@
 
     processWindow(window);
 
-    // --- ZAVRNITEV, ČE NI PODATKOV ---
-    if (!podatkiNajdeni) {
+    if (validRows.length === 0) {
         alert("Ni ustreznih podatkov.\n\nProsimo, odprite stran:\nPoročila -> Tekoče delo -> Realizacija dela\nin izberite pravi datum.");
         return; // Prekine izvajanje kode
     }
+
+    // --- DOLOČITEV TEKOČEGA OBDOBJA NA PODLAGI ZAJETIH PODATKOV ---
+    let maxTimeVal = 0;
+    let trenutniMesec = 1;
+    let trenutnoLeto = new Date().getFullYear();
+
+    // Poiščemo najvišji mesec in leto izključno znotraj najdenih dokumentov
+    validRows.forEach(r => {
+        let tVal = r.year * 12 + r.month;
+        if (tVal > maxTimeVal) {
+            maxTimeVal = tVal;
+            trenutniMesec = r.month;
+            trenutnoLeto = r.year;
+        }
+    });
+
+    function getDaysInMonth(month, year) {
+        return new Date(year, month, 0).getDate();
+    }
+
+    function isCurrentPeriod(d, m, y) {
+        let prejsnjiMesec = trenutniMesec === 1 ? 12 : trenutniMesec - 1;
+        let letoPrejsnjega = trenutniMesec === 1 ? trenutnoLeto - 1 : trenutnoLeto;
+
+        let zacetniDan = Math.min(30, getDaysInMonth(prejsnjiMesec, letoPrejsnjega));
+
+        if (y === letoPrejsnjega && m === prejsnjiMesec && d >= zacetniDan) return true;
+        if (y === trenutnoLeto && m === trenutniMesec && d <= 29) return true; 
+        
+        return false;
+    }
+
+    // --- OBDELAVA IN ŠTETJE ---
+    validRows.forEach(r => {
+        let isCurr = isCurrentPeriod(r.day, r.month, r.year);
+
+        // Štetje: DELOVNA USPEŠNOST
+        if (checkDocMatch(r.docName, docsA)) {
+            stats.delovna.totalA++;
+            stats.delovna.months[r.month].a++;
+            if (isCurr) stats.delovna.currentA++;
+            
+            r.tr.style.backgroundColor = '#fff3cd'; 
+        } else if (checkDocMatch(r.docName, docsIP)) {
+            stats.delovna.totalIP++;
+            stats.delovna.months[r.month].ip++;
+            if (isCurr) stats.delovna.currentIP++;
+            
+            r.tr.style.backgroundColor = '#d4edda'; 
+        }
+
+        // Štetje: LETNA NORMA
+        if (checkDocMatch(r.docName, normaDocsA)) {
+            stats.norma.totalA++;
+            stats.norma.months[r.month].a++;
+        } else if (checkDocMatch(r.docName, normaDocsIP)) {
+            stats.norma.totalIP++;
+            stats.norma.months[r.month].ip++;
+        }
+    });
+
+    const zdaj = new Date(); // Ohranjeno za odstotek poteka tekočega leta v UI
 
     // --- 5. LOGIKA ZA UI IN IZRAČUNE ---
     function renderUI(isHalfNorm) {
