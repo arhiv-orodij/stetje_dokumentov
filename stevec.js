@@ -224,7 +224,6 @@
         let dosezenoNormaA_num = ((stats.norma.totalA / ciljNormaA) * 100);
         let dosezenoNormaIP_num = ((stats.norma.totalIP / ciljNormaIP) * 100);
         
-        // NOVO: Skupni seštevki in odstotki znotraj zajetih aktov za letno normo
         let skupnoNorma = stats.norma.totalA + stats.norma.totalIP;
         let odstotekNormaA = skupnoNorma > 0 ? ((stats.norma.totalA / skupnoNorma) * 100).toFixed(1) : "0";
         let odstotekNormaIP = skupnoNorma > 0 ? ((stats.norma.totalIP / skupnoNorma) * 100).toFixed(1) : "0";
@@ -249,58 +248,77 @@
         const razlikaIP = stats.norma.totalIP - pricakovanoIP;
         
         const renderBadge = (razlika) => {
-            if (razlika >= 0) return `<span style="background:#dcfce7; color:#166534; padding:2px 8px; border-radius:12px; font-weight:600; font-size:12px; margin-left:6px;">+${razlika}</span>`;
-            return `<span style="background:#fee2e2; color:#991b1b; padding:2px 8px; border-radius:12px; font-weight:600; font-size:12px; margin-left:6px;">${razlika}</span>`;
+            if (razlika >= 0) return `<span style="background:#dcfce7; color:#166534; padding:3px 10px; border-radius:12px; font-weight:700; font-size:14px; margin-left:8px;">+${razlika}</span>`;
+            return `<span style="background:#fee2e2; color:#991b1b; padding:3px 10px; border-radius:12px; font-weight:700; font-size:14px; margin-left:8px;">${razlika}</span>`;
         };
 
-        // Generiranje mesečnih vrstic (HTML)
-        let htmlDelovnaMeseci = `<div style="display:grid; grid-template-columns: 80px repeat(12, 1fr); gap:4px; text-align:center; font-size:11px; margin-top:12px;">`;
+        // Generiranje mesečnih vrstic (HTML) za Delovno uspešnost
+        let htmlDelovnaMeseci = `<div style="display:grid; grid-template-columns: 85px repeat(12, 1fr); gap:4px; text-align:center; font-size:13px; margin-top:16px;">`;
         htmlDelovnaMeseci += `<div style="font-weight:700; color:#64748b; text-align:left;">MESEC</div>`;
-        for(let i=1; i<=12; i++) htmlDelovnaMeseci += `<div style="font-weight:700; color:#64748b;">${i}</div>`;
+        for(let i=1; i<=12; i++) htmlDelovnaMeseci += `<div style="font-weight:800; color:#64748b;">${i}</div>`;
         
         htmlDelovnaMeseci += `<div style="font-weight:600; color:#a16207; text-align:left;">Akti (A)</div>`;
-        for(let i=1; i<=12; i++) htmlDelovnaMeseci += `<div style="background:#fef9c3; border-radius:4px; padding:2px 0;">${stats.delovna.months[i].a || '-'}</div>`;
+        for(let i=1; i<=12; i++) htmlDelovnaMeseci += `<div style="background:#fef9c3; border-radius:4px; padding:3px 0;">${stats.delovna.months[i].a || '-'}</div>`;
         
         htmlDelovnaMeseci += `<div style="font-weight:600; color:#166534; text-align:left;">Pregledi (IP)</div>`;
-        for(let i=1; i<=12; i++) htmlDelovnaMeseci += `<div style="background:#dcfce7; border-radius:4px; padding:2px 0;">${stats.delovna.months[i].ip || '-'}</div>`;
+        for(let i=1; i<=12; i++) htmlDelovnaMeseci += `<div style="background:#dcfce7; border-radius:4px; padding:3px 0;">${stats.delovna.months[i].ip || '-'}</div>`;
         
+        // Priprava točk za vsak mesec
+        let mesecTocke = [];
         htmlDelovnaMeseci += `<div style="font-weight:600; color:#0f172a; text-align:left;">Točke</div>`;
         for(let i=1; i<=12; i++) {
             let mt = (stats.delovna.months[i].ip / 16) + (stats.delovna.months[i].a / 4);
-            htmlDelovnaMeseci += `<div style="background:#f1f5f9; border-radius:4px; padding:2px 0;">${mt>0 ? mt.toFixed(1) : '-'}</div>`;
+            mesecTocke[i] = mt;
+            htmlDelovnaMeseci += `<div style="background:#f1f5f9; border-radius:4px; padding:3px 0;">${mt>0 ? mt.toFixed(1) : '-'}</div>`;
+        }
+        
+        // NOVA VRSTICA: Faktor za vsak mesec
+        htmlDelovnaMeseci += `<div style="font-weight:700; color:#0284c7; text-align:left;">Faktor</div>`;
+        for(let i=1; i<=12; i++) {
+            let mt = mesecTocke[i];
+            let mf = "-";
+            if (mt > 0) {
+                if (mt >= meja4) mf = "4%";
+                else if (mt >= meja3) mf = "3%";
+                else if (mt >= meja2) mf = "2%";
+                else if (mt >= meja1) mf = "1%";
+                else mf = "0%";
+            }
+            htmlDelovnaMeseci += `<div style="background:#e0f2fe; border-radius:4px; padding:3px 0; font-weight:600; color:#0369a1;">${mf}</div>`;
         }
         htmlDelovnaMeseci += `</div>`;
 
 
-        let htmlNormaMeseci = `<div style="display:grid; grid-template-columns: 80px repeat(12, 1fr); gap:4px; text-align:center; font-size:11px; margin-bottom:16px;">`;
+        // Generiranje mesečnih vrstic (HTML) za Letno normo
+        let htmlNormaMeseci = `<div style="display:grid; grid-template-columns: 85px repeat(12, 1fr); gap:4px; text-align:center; font-size:13px; margin-bottom:20px;">`;
         htmlNormaMeseci += `<div style="font-weight:700; color:#64748b; text-align:left;">MESEC</div>`;
-        for(let i=1; i<=12; i++) htmlNormaMeseci += `<div style="font-weight:700; color:#64748b;">${i}</div>`;
+        for(let i=1; i<=12; i++) htmlNormaMeseci += `<div style="font-weight:800; color:#64748b;">${i}</div>`;
         
         htmlNormaMeseci += `<div style="font-weight:600; color:#b45309; text-align:left;">Akti (A)</div>`;
-        for(let i=1; i<=12; i++) htmlNormaMeseci += `<div style="background:#ffedd5; border-radius:4px; padding:2px 0;">${stats.norma.months[i].a || '-'}</div>`;
+        for(let i=1; i<=12; i++) htmlNormaMeseci += `<div style="background:#ffedd5; border-radius:4px; padding:3px 0;">${stats.norma.months[i].a || '-'}</div>`;
         
         htmlNormaMeseci += `<div style="font-weight:600; color:#047857; text-align:left;">Pregledi (IP)</div>`;
-        for(let i=1; i<=12; i++) htmlNormaMeseci += `<div style="background:#d1fae5; border-radius:4px; padding:2px 0;">${stats.norma.months[i].ip || '-'}</div>`;
+        for(let i=1; i<=12; i++) htmlNormaMeseci += `<div style="background:#d1fae5; border-radius:4px; padding:3px 0;">${stats.norma.months[i].ip || '-'}</div>`;
         htmlNormaMeseci += `</div>`;
 
         // Združevanje vsega v container
         container.innerHTML = `
             <!-- DELOVNA USPEŠNOST SEKCIJA -->
-            <div style="margin-bottom: 24px;">
-                <h3 style="margin:0 0 12px 0; font-size:13px; text-transform:uppercase; color:#64748b; font-weight:700; letter-spacing:0.5px;">Delovna uspešnost</h3>
+            <div style="margin-bottom: 32px;">
+                <h3 style="margin:0 0 16px 0; font-size:18px; text-transform:uppercase; color:#334155; font-weight:800; letter-spacing:0.5px; border-bottom:2px solid #cbd5e1; padding-bottom:8px;">Delovna uspešnost</h3>
                 
                 <div style="display:flex; gap:16px; flex-wrap:wrap;">
-                    <div style="flex:1; min-width:120px; background:#fffbea; border:1px solid #fef08a; padding:12px; border-radius:12px;">
-                        <div style="font-size:12px; color:#a16207; font-weight:600; margin-bottom:4px;">AKTI (A)</div>
-                        <div style="font-size:24px; font-weight:800; color:#854d0e;">${sumA} <span style="font-size:13px; font-weight:500; color:#ca8a04;">(${odstotekDelovnoA}%)</span></div>
+                    <div style="flex:1; min-width:120px; background:#fffbea; border:1px solid #fef08a; padding:14px; border-radius:12px;">
+                        <div style="font-size:14px; color:#a16207; font-weight:700; margin-bottom:6px;">AKTI (A)</div>
+                        <div style="font-size:28px; font-weight:800; color:#854d0e;">${sumA} <span style="font-size:15px; font-weight:600; color:#ca8a04;">(${odstotekDelovnoA}%)</span></div>
                     </div>
-                    <div style="flex:1; min-width:120px; background:#f0fdf4; border:1px solid #bbf7d0; padding:12px; border-radius:12px;">
-                        <div style="font-size:12px; color:#166534; font-weight:600; margin-bottom:4px;">PREGLEDI (IP)</div>
-                        <div style="font-size:24px; font-weight:800; color:#15803d;">${sumIP} <span style="font-size:13px; font-weight:500; color:#22c55e;">(${odstotekDelovnoIP}%)</span></div>
+                    <div style="flex:1; min-width:120px; background:#f0fdf4; border:1px solid #bbf7d0; padding:14px; border-radius:12px;">
+                        <div style="font-size:14px; color:#166534; font-weight:700; margin-bottom:6px;">PREGLEDI (IP)</div>
+                        <div style="font-size:28px; font-weight:800; color:#15803d;">${sumIP} <span style="font-size:15px; font-weight:600; color:#22c55e;">(${odstotekDelovnoIP}%)</span></div>
                     </div>
-                    <div style="flex:1; min-width:150px; background:#f8fafc; border:1px solid #e2e8f0; padding:12px; border-radius:12px; text-align:center;">
-                        <div style="font-size:12px; color:#475569; font-weight:600; margin-bottom:4px;">TOČKE / FAKTOR</div>
-                        <div style="font-size:24px; font-weight:800; color:#0f172a;">${tocke.toFixed(2)} <span style="color:#0ea5e9;">/ ${faktor}</span></div>
+                    <div style="flex:1; min-width:150px; background:#f8fafc; border:1px solid #e2e8f0; padding:14px; border-radius:12px; text-align:center;">
+                        <div style="font-size:14px; color:#475569; font-weight:700; margin-bottom:6px;">TOČKE / FAKTOR</div>
+                        <div style="font-size:28px; font-weight:800; color:#0f172a;">${tocke.toFixed(2)} <span style="color:#0ea5e9;">/ ${faktor}</span></div>
                     </div>
                 </div>
                 ${htmlDelovnaMeseci}
@@ -308,54 +326,53 @@
 
             <!-- LETNA NORMA SEKCIJA -->
             <div>
-                <div style="display:flex; justify-content:space-between; align-items:flex-end; margin-bottom:12px;">
-                    <h3 style="margin:0; font-size:13px; text-transform:uppercase; color:#64748b; font-weight:700; letter-spacing:0.5px;">Letna norma</h3>
-                    <div style="font-size:12px; color:#64748b;">Mimo je <b>${odstotekLeta_num.toFixed(1)}%</b> leta (${preostaliDni} dni do konca)</div>
+                <div style="display:flex; justify-content:space-between; align-items:flex-end; margin-bottom:16px; border-bottom:2px solid #cbd5e1; padding-bottom:8px;">
+                    <h3 style="margin:0; font-size:18px; text-transform:uppercase; color:#334155; font-weight:800; letter-spacing:0.5px;">Letna norma</h3>
+                    <div style="font-size:14px; color:#475569; font-weight:500;">Mimo je <b>${odstotekLeta_num.toFixed(1)}%</b> leta (${preostaliDni} dni do konca)</div>
                 </div>
                 
-                <!-- NOVI OKVIRJI ZA LETNO NORMO -->
-                <div style="display:flex; gap:16px; flex-wrap:wrap; margin-bottom:16px;">
-                    <div style="flex:1; min-width:120px; background:#fffbea; border:1px solid #fef08a; padding:12px; border-radius:12px;">
-                        <div style="font-size:12px; color:#a16207; font-weight:600; margin-bottom:4px;">AKTI (A)</div>
-                        <div style="font-size:24px; font-weight:800; color:#854d0e;">${stats.norma.totalA} <span style="font-size:13px; font-weight:500; color:#ca8a04;">(${odstotekNormaA}%)</span></div>
+                <div style="display:flex; gap:16px; flex-wrap:wrap; margin-bottom:20px;">
+                    <div style="flex:1; min-width:120px; background:#fffbea; border:1px solid #fef08a; padding:14px; border-radius:12px;">
+                        <div style="font-size:14px; color:#a16207; font-weight:700; margin-bottom:6px;">AKTI (A)</div>
+                        <div style="font-size:28px; font-weight:800; color:#854d0e;">${stats.norma.totalA} <span style="font-size:15px; font-weight:600; color:#ca8a04;">(${odstotekNormaA}%)</span></div>
                     </div>
-                    <div style="flex:1; min-width:120px; background:#f0fdf4; border:1px solid #bbf7d0; padding:12px; border-radius:12px;">
-                        <div style="font-size:12px; color:#166534; font-weight:600; margin-bottom:4px;">PREGLEDI (IP)</div>
-                        <div style="font-size:24px; font-weight:800; color:#15803d;">${stats.norma.totalIP} <span style="font-size:13px; font-weight:500; color:#22c55e;">(${odstotekNormaIP}%)</span></div>
+                    <div style="flex:1; min-width:120px; background:#f0fdf4; border:1px solid #bbf7d0; padding:14px; border-radius:12px;">
+                        <div style="font-size:14px; color:#166534; font-weight:700; margin-bottom:6px;">PREGLEDI (IP)</div>
+                        <div style="font-size:28px; font-weight:800; color:#15803d;">${stats.norma.totalIP} <span style="font-size:15px; font-weight:600; color:#22c55e;">(${odstotekNormaIP}%)</span></div>
                     </div>
-                    <div style="flex:1; min-width:150px; background:#f8fafc; border:1px solid #e2e8f0; padding:12px; border-radius:12px; text-align:center;">
-                        <div style="font-size:12px; color:#475569; font-weight:600; margin-bottom:4px;">SKUPAJ / REALIZACIJA</div>
-                        <div style="font-size:24px; font-weight:800; color:#0f172a;">${skupnoNorma} <span style="color:#0ea5e9; font-size:16px;">/ ${skupnaRealizacijaLeta}%</span></div>
+                    <div style="flex:1; min-width:150px; background:#f8fafc; border:1px solid #e2e8f0; padding:14px; border-radius:12px; text-align:center;">
+                        <div style="font-size:14px; color:#475569; font-weight:700; margin-bottom:6px;">SKUPAJ / REALIZACIJA</div>
+                        <div style="font-size:28px; font-weight:800; color:#0f172a;">${skupnoNorma} <span style="color:#0ea5e9; font-size:18px;">/ ${skupnaRealizacijaLeta}%</span></div>
                     </div>
                 </div>
 
-                <div style="background:#ffffff; border:1px solid #e2e8f0; padding:16px; border-radius:12px;">
-                    <div style="font-size:12px; color:#64748b; margin-bottom:12px; font-style:italic;">
+                <div style="background:#ffffff; border:1px solid #e2e8f0; padding:20px; border-radius:12px;">
+                    <div style="font-size:14px; color:#64748b; margin-bottom:16px; font-style:italic;">
                         *Ciljna letna norma: ${ciljNormaA} aktov in ${ciljNormaIP} pregledov.
                     </div>
                     
                     ${htmlNormaMeseci}
 
-                    <div style="display:flex; flex-direction:column; gap:16px;">
+                    <div style="display:flex; flex-direction:column; gap:20px;">
                         <!-- Akti Progress -->
                         <div>
-                            <div style="display:flex; justify-content:space-between; font-size:13px; margin-bottom:6px; font-weight:600; color:#334155;">
-                                <span>Akti: ${stats.norma.totalA} / ${ciljNormaA} <span style="color:#64748b; font-weight:400;">(${dosezenoNormaA_num.toFixed(1)}%)</span></span>
+                            <div style="display:flex; justify-content:space-between; font-size:15px; margin-bottom:8px; font-weight:700; color:#334155;">
+                                <span>Akti: ${stats.norma.totalA} / ${ciljNormaA} <span style="color:#64748b; font-weight:500;">(${dosezenoNormaA_num.toFixed(1)}%)</span></span>
                                 <span>Pričakovano do danes: ${pricakovanoA} ${renderBadge(razlikaA)}</span>
                             </div>
-                            <div style="width:100%; background:#f1f5f9; height:8px; border-radius:4px; overflow:hidden;">
-                                <div style="width:${Math.min(dosezenoNormaA_num, 100)}%; background:${dosezenoNormaA_num >= odstotekLeta_num ? '#f59e0b' : '#ef4444'}; height:100%; border-radius:4px; transition:width 0.5s ease-in-out;"></div>
+                            <div style="width:100%; background:#f1f5f9; height:10px; border-radius:5px; overflow:hidden;">
+                                <div style="width:${Math.min(dosezenoNormaA_num, 100)}%; background:${dosezenoNormaA_num >= odstotekLeta_num ? '#f59e0b' : '#ef4444'}; height:100%; border-radius:5px; transition:width 0.5s ease-in-out;"></div>
                             </div>
                         </div>
 
                         <!-- Pregledi Progress -->
                         <div>
-                            <div style="display:flex; justify-content:space-between; font-size:13px; margin-bottom:6px; font-weight:600; color:#334155;">
-                                <span>Pregledi: ${stats.norma.totalIP} / ${ciljNormaIP} <span style="color:#64748b; font-weight:400;">(${dosezenoNormaIP_num.toFixed(1)}%)</span></span>
+                            <div style="display:flex; justify-content:space-between; font-size:15px; margin-bottom:8px; font-weight:700; color:#334155;">
+                                <span>Pregledi: ${stats.norma.totalIP} / ${ciljNormaIP} <span style="color:#64748b; font-weight:500;">(${dosezenoNormaIP_num.toFixed(1)}%)</span></span>
                                 <span>Pričakovano do danes: ${pricakovanoIP} ${renderBadge(razlikaIP)}</span>
                             </div>
-                            <div style="width:100%; background:#f1f5f9; height:8px; border-radius:4px; overflow:hidden;">
-                                <div style="width:${Math.min(dosezenoNormaIP_num, 100)}%; background:${dosezenoNormaIP_num >= odstotekLeta_num ? '#10b981' : '#ef4444'}; height:100%; border-radius:4px; transition:width 0.5s ease-in-out;"></div>
+                            <div style="width:100%; background:#f1f5f9; height:10px; border-radius:5px; overflow:hidden;">
+                                <div style="width:${Math.min(dosezenoNormaIP_num, 100)}%; background:${dosezenoNormaIP_num >= odstotekLeta_num ? '#10b981' : '#ef4444'}; height:100%; border-radius:5px; transition:width 0.5s ease-in-out;"></div>
                             </div>
                         </div>
                     </div>
